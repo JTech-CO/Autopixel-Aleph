@@ -33,7 +33,7 @@ The sequence runs once per location. Moving the pointer outside the tolerance ra
 ## Panel Controls
 
 | Control | Values | Default | Purpose |
-|---|---:|---:|---|
+|---|---|---|---|
 | Toggle | On / Off | On | Enables or disables automatic dwell triggering |
 | Dwell | 0.1 / 0.2 / 0.3 / 0.4 / 0.5 s | 0.5 s | Sets how long the pointer must remain still |
 | Collapse | Expanded / Collapsed | Expanded | Hides the slider while keeping the progress bar visible |

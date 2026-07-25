@@ -78,7 +78,7 @@ wplace-hover/
 
 The extension makes no network requests and collects no personal data. It stores only the enabled state, dwell time, and panel collapse state locally on the device.
 
-See [privacy-policy.html](privacy-policy.html) for the complete policy.
+See [privacy-policy.html](<https://jtech-co.github.io/wplace-hover/privacy-policy.html>) for the complete policy.
 
 ## License
 

@@ -41,7 +41,7 @@ Full guide: [HOW-TO-USE.md](HOW-TO-USE.md).
 
 - **Version** 2.1.2, MIT licensed
 - **Platform** Chrome / Chromium, Manifest V3. Vanilla JavaScript, no remote code
-- **Privacy** [privacy-policy.html](privacy-policy.html). Nothing is collected or transmitted
+- **Privacy** [privacy-policy.html](<https://jtech-co.github.io/Autopixel-Aleph/privacy-policy.html>). Nothing is collected or transmitted
 - **Credits** input-engine approach adapted from
   [JTech-CO/wplace-hover](https://github.com/JTech-CO/wplace-hover) (MIT)
 

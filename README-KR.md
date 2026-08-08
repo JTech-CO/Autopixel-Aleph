@@ -23,9 +23,11 @@
 
 빌드 과정도 의존성도 없습니다.
 
-1. `chrome://extensions` 에서 **개발자 모드**를 켭니다.
-2. **압축해제된 확장 프로그램을 로드**하고 `autopixel-x` 폴더를 선택합니다.
-3. 도안 오버레이를 띄운 채로 `https://wplace.live/` 또는 `https://youplace.live/` 를 엽니다.
+1. **깃허브 저장소** 페이지 우측의 **[Code]** 버튼을 누르고 [Download ZIP]을 클릭해 파일은 다운로드합니다.
+2. 다운로드한 ZIP 파일의 압축을 해제합니다.
+3. 브라우저 주소창에 `chrome://extensions`를 입력해 이동한 뒤, 우측 상단의 **개발자 모드**를 켭니다.
+4. **압축해제된 확장 프로그램을 로드**를 클릭하고 압축을 푼 `autopixel-aleph` 폴더를 선택합니다.
+5. 도안 오버레이를 띄운 채로 `https://wplace.live/` 또는 `https://youplace.live/` 를 엽니다.
 
 ## 사용
 

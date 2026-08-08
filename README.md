@@ -1,85 +1,51 @@
-# wplace hover
+# AutoPixel-ℵ
 
-> Automatically presses i and performs two clicks after the pointer remains still on one location at wplace.live.
+**English** | [한국어](README-KR.md)
 
-## Overview
+> A Chrome extension that fills a selected area on wplace.live or youplace.live from your template
+> overlay, one synthetic click per pixel. Your cursor is never touched.
 
-When the pointer stays within a 4 px radius for the selected dwell time, the extension runs this sequence:
+## Speed
 
-```text
-I key: keydown → keypress → keyup → click → click
-```
+One cell = `pointermove` > `i` (eyedropper) > click > click, with render-frame waits between the
+steps. Measured on a 60 Hz display.
 
-The sequence runs once per location. Moving the pointer outside the tolerance radius or using the mouse wheel arms the trigger again.
+| Preset | ms / cell | px / s |
+|---|---|---|
+| Safe | 336 | 3.0 |
+| Fast *(default)* | 91 | 11.0 |
+| Turbo | 68 | 14.7 |
+| Turbo + `Current` colour | 51 | 19.5 |
 
-## Features
+Turbo runs flat out; Fast and Safe are paced to 75 % and 50 % of it. Delay and jitter default to 0.
 
-- Dwell detection from **0.1 to 0.5 seconds** in 0.1-second increments
-- Default dwell time of **0.5 seconds** for new installations
-- Compact Shadow DOM panel with enable/disable and dwell controls
-- High-visibility 6 px progress bar that remains visible while the panel is collapsed
-- Local preference persistence through `chrome.storage.local`
-- Manual `i` trigger support: pressing `i` yourself performs only the two clicks
-- No dependencies and no build step
+## Install
 
-## Installation
+No build step, no dependencies.
 
-1. Open `chrome://extensions` in a Chromium-based browser.
-2. Enable **Developer mode**.
-3. Select **Load unpacked**.
-4. Choose the `wplace-hover` directory.
-5. Open `https://wplace.live/`.
+1. Open `chrome://extensions`, turn on **Developer mode**.
+2. **Load unpacked**, select the `autopixel-x` folder.
+3. Open `https://wplace.live/` or `https://youplace.live/` with your template overlay showing.
 
-## Panel Controls
+## Use
 
-| Control | Values | Default | Purpose |
-|---|---|---|---|
-| Toggle | On / Off | On | Enables or disables automatic dwell triggering |
-| Dwell | 0.1 / 0.2 / 0.3 / 0.4 / 0.5 s | 0.5 s | Sets how long the pointer must remain still |
-| Collapse | Expanded / Collapsed | Expanded | Hides the slider while keeping the progress bar visible |
+Everything is in the panel; there are no keyboard shortcuts.
 
-## Technical Details
+1. **Calibrate**, click the centre of any cell, then a cell `Apart` cells away (default 10).
+2. **Select area**, drag a box over the part of the template you want filled.
+3. **Start**.
 
-- **Platform:** Chrome Extension, Manifest V3
-- **Language:** Vanilla JavaScript
-- **UI isolation:** Shadow DOM
-- **APIs:** KeyboardEvent, PointerEvent, MouseEvent, requestAnimationFrame, chrome.storage.local
-- **Content-script scope:** `wplace.live` and its subdomains
+Full guide: [HOW-TO-USE.md](HOW-TO-USE.md).
 
-The input hold and sequence gap use render-frame waits instead of fixed millisecond delays. `HOLD_FRAMES = 2` keeps the synthetic key and mouse buttons active long enough for frame-based canvas input handlers while remaining fast. A timeout fallback prevents a sequence from hanging when animation frames are throttled.
+## Info
 
-The extension does not run while the tab is hidden, the window is unfocused, the pointer is over the panel, or the user is typing in an input field.
+- **Version** 2.1.2, MIT licensed
+- **Platform** Chrome / Chromium, Manifest V3. Vanilla JavaScript, no remote code
+- **Privacy** [privacy-policy.html](privacy-policy.html). Nothing is collected or transmitted
+- **Credits** input-engine approach adapted from
+  [JTech-CO/wplace-hover](https://github.com/JTech-CO/wplace-hover) (MIT)
 
-## Configuration Constants
+## Disclaimer
 
-```js
-const TRIGGER_KEY = 'i';
-const MOVE_TOL = 4;
-const HOVER_UNIT = 100;
-const HOLD_FRAMES = 2;
-const GAP_FRAMES = 1;
-```
-
-## Project Structure
-
-```text
-wplace-hover/
-├── manifest.json
-├── content.js
-├── icons/
-│   ├── logo16.png
-│   ├── logo48.png
-│   └── logo128.png
-├── privacy-policy.html
-└── README.md
-```
-
-## Privacy
-
-The extension makes no network requests and collects no personal data. It stores only the enabled state, dwell time, and panel collapse state locally on the device.
-
-See [privacy-policy.html](<https://jtech-co.github.io/wplace-hover/privacy-policy.html>) for the complete policy.
-
-## License
-
-MIT
+An automation tool. These sites may restrict automation and **you are solely responsible** for the
+consequences, including account action. Use only your own account and paint charges.

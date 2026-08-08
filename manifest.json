@@ -1,20 +1,22 @@
 {
   "manifest_version": 3,
-  "name": "wplace hover",
-  "version": "1.2.0",
-  "description": "Automatically presses i and performs two clicks after the pointer remains still on one location.",
+  "name": "AutoPixel-ℵ",
+  "version": "2.1.2",
+  "description": "Select an area on wplace.live or youplace.live and fill it from your template overlay, one synthetic click per pixel.",
   "icons": {
     "16": "icons/logo16.png",
+    "32": "icons/logo32.png",
     "48": "icons/logo48.png",
     "128": "icons/logo128.png"
   },
   "action": {
     "default_icon": {
       "16": "icons/logo16.png",
+      "32": "icons/logo32.png",
       "48": "icons/logo48.png",
       "128": "icons/logo128.png"
     },
-    "default_title": "wplace hover"
+    "default_title": "AutoPixel-ℵ"
   },
   "permissions": [
     "storage"
@@ -23,10 +25,21 @@
     {
       "matches": [
         "https://wplace.live/*",
-        "https://*.wplace.live/*"
+        "https://*.wplace.live/*",
+        "https://youplace.live/*",
+        "https://*.youplace.live/*"
       ],
       "js": [
-        "content.js"
+        "src/i18n.js",
+        "src/shell.js",
+        "src/store.js",
+        "src/engine.js",
+        "src/grid.js",
+        "src/overlay.js",
+        "src/runner.js",
+        "src/pick.js",
+        "src/ui.js",
+        "src/main.js"
       ],
       "run_at": "document_idle"
     }

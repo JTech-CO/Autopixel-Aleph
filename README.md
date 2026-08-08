@@ -23,9 +23,11 @@ Turbo runs flat out; Fast and Safe are paced to 75 % and 50 % of it. Delay and j
 
 No build step, no dependencies.
 
-1. Open `chrome://extensions`, turn on **Developer mode**.
-2. **Load unpacked**, select the `autopixel-x` folder.
-3. Open `https://wplace.live/` or `https://youplace.live/` with your template overlay showing.
+1. On the **GitHub repository** page, click the **[Code]** button on the right and select **[Download ZIP]** to download the file.
+2. Extract the downloaded ZIP file.
+3. Enter `chrome://extensions` in your browser address bar and enable **Developer mode** in the top right corner.
+4. Click **Load unpacked** and select the extracted `autopixel-aleph` folder.
+5. Open `https://wplace.live/` or `https://youplace.live/` with the template overlay displayed.
 
 ## Use
 

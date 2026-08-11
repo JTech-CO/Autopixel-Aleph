@@ -10,6 +10,7 @@
     lang: 'en',
     folded: false,
     pos: { x: 12, y: 12 },
+    panelH: 0,             // px; 0 = full height. Only ever shrunk by the user
 
     gapCells: 10,
     pitch: 0,
@@ -46,6 +47,7 @@
       lang: s.lang === 'ko' ? 'ko' : 'en',
       folded: Boolean(s.folded),
       pos: { x: num(p.x, DEFAULTS.pos.x, -4000, 8000), y: num(p.y, DEFAULTS.pos.y, -4000, 8000) },
+      panelH: Math.round(num(s.panelH, 0, 0, 4000)),
 
       gapCells: Math.round(num(s.gapCells, DEFAULTS.gapCells, 1, 999)),
       pitch: num(s.pitch, 0, 0, 4096),

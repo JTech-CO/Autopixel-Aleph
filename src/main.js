@@ -209,6 +209,7 @@
   store.onChange((cfg) => {
     overlay.setShowGrid(cfg.showGrid);
     ui.render();
+    ui.refitHeight();   // Custom mode and folding change how tall the body needs to be
   });
 
   addEventListener('resize', () => {
@@ -224,6 +225,7 @@
     if (grid.state.region) overlay.resetProgress();
     ui.applyText();
     ui.render();
+    ui.refitHeight();
     ui.setPhase(grid.ready() ? 'armed' : 'idle');
     idleStatus();
   });

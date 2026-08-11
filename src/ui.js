@@ -14,7 +14,7 @@
   const style = document.createElement('style');
   style.textContent = `
     .panel {
-      --w: 360px;
+      --w: 288px;
       --bg0: #000000;
       --bg1: #0d0d0d;
       --bg2: #1c1c1c;
@@ -24,14 +24,29 @@
       --fg2: #6e6e6e;
       --gr: #3fb950;
 
+      /* spacing density, 1 = roomy .. 0 = tightest. Type size never changes. */
+      --d: 1;
+      --pad-y: calc(4px + 3px * var(--d));
+      --pad-s: calc(3px + 2px * var(--d));
+      --gap-y: calc(2px + 2px * var(--d));
+      --gap-g: calc(2px + 1px * var(--d));
+      --h-head: calc(20px + 4px * var(--d));
+      --h-row: calc(20px + 4px * var(--d));
+      --h-read: calc(19px + 3px * var(--d));
+      --h-seg: calc(19px + 3px * var(--d));
+      --h-field: calc(18px + 2px * var(--d));
+      --h-act: calc(23px + 5px * var(--d));
+      --h-status: calc(18px + 4px * var(--d));
+
+      position: relative;
       width: var(--w);
-      height: calc(var(--w) * 4 / 3);
+      height: var(--h, calc(var(--w) * 4 / 3));
       max-height: 100vh;
       display: flex;
       flex-direction: column;
       font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
                    "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
-      font-size: 13px;
+      font-size: 12px;
       line-height: 1.35;
       color: var(--fg0);
       background: var(--bg1);
@@ -47,24 +62,24 @@
       display: flex;
       flex: none;
       align-items: center;
-      gap: 9px;
-      height: 30px;
-      padding: 0 3px 0 12px;
+      gap: 7px;
+      height: var(--h-head);
+      padding: 0 2px 0 10px;
       background: var(--bg0);
       cursor: grab;
     }
     .head:active { cursor: grabbing; }
-    .dot { width: 7px; height: 7px; flex: none; background: var(--fg2); }
+    .dot { width: 6px; height: 6px; flex: none; background: var(--fg2); }
     .armed .dot { background: var(--gr); }
     .busy .dot { background: var(--fg0); }
-    .title { font-size: 14px; font-weight: 600; letter-spacing: 0.4px; white-space: nowrap; }
+    .title { font-size: 13px; font-weight: 600; letter-spacing: 0.4px; white-space: nowrap; }
     .head-actions { display: flex; align-items: center; margin-left: auto; }
 
     button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
 
-    .ghost { height: 26px; padding: 0 9px; color: var(--fg1); }
+    .ghost { height: var(--h-read); padding: 0 7px; color: var(--fg1); }
     .ghost:hover { color: var(--fg0); background: var(--bg2); }
-    .ghost.icon { width: 26px; padding: 0; display: grid; place-items: center; }
+    .ghost.icon { width: 22px; padding: 0; display: grid; place-items: center; }
     .folded .caret svg { transform: rotate(-90deg); }
 
     .track { flex: none; height: 3px; background: var(--bg2); overflow: hidden; }
@@ -77,8 +92,8 @@
 
     .body {
       flex: 1 1 auto; min-height: 0;
-      padding: 9px 12px;
-      display: flex; flex-direction: column; gap: 7px;
+      padding: var(--pad-y) 10px;
+      display: flex; flex-direction: column; gap: var(--gap-y);
       overflow-y: auto; overscroll-behavior: contain;
       scrollbar-width: thin; scrollbar-color: var(--bg3) transparent;
     }
@@ -87,18 +102,18 @@
     .folded .group { display: none; }
     .folded .body { justify-content: center; overflow: hidden; }
 
-    .group { display: flex; flex-direction: column; gap: 4px; }
+    .group { display: flex; flex-direction: column; gap: var(--gap-g); }
     .label {
       margin: 0;
-      font-size: 10px; font-weight: 700; letter-spacing: 1px;
+      font-size: 9.5px; font-weight: 700; letter-spacing: 0.8px;
       text-transform: uppercase; color: var(--fg2);
     }
 
-    .row { display: flex; align-items: center; gap: 5px; }
+    .row { display: flex; align-items: center; gap: 4px; }
     .row > .grow { flex: 1 1 auto; min-width: 0; }
 
     .btn {
-      height: 28px; padding: 0 10px;
+      height: var(--h-row); padding: 0 8px;
       color: var(--fg0); background: var(--bg2);
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
@@ -108,35 +123,35 @@
     .btn.primary:disabled { color: var(--fg2); background: var(--bg2); font-weight: 400; }
 
     .readout {
-      display: flex; align-items: center; gap: 5px;
-      height: 26px; padding: 0 3px 0 9px;
+      display: flex; align-items: center; gap: 4px;
+      height: var(--h-read); padding: 0 2px 0 8px;
       background: var(--bg2);
-      font-size: 12.5px;
+      font-size: 11.5px;
     }
     .readout .v { font-variant-numeric: tabular-nums; font-weight: 600; color: var(--gr); }
     .readout .v.unset { color: var(--fg2); font-weight: 400; }
     .readout .sp { flex: 1 1 auto; }
     .stepper { display: flex; }
-    .stepper .ghost { width: 24px; height: 24px; padding: 0; display: grid; place-items: center; }
+    .stepper .ghost { width: 20px; height: var(--h-field); padding: 0; display: grid; place-items: center; }
 
     .seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 1px; }
     .seg button {
-      height: 26px; padding: 0 3px;
-      font-size: 12px; color: var(--fg1); background: var(--bg2);
+      height: var(--h-seg); padding: 0 2px;
+      font-size: 11px; color: var(--fg1); background: var(--bg2);
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     .seg button:hover { color: var(--fg0); background: var(--bg3); }
     .seg button[aria-pressed="true"] { color: var(--bg0); background: var(--gr); font-weight: 700; }
 
-    .pair { display: flex; align-items: center; gap: 4px; min-width: 0; }
+    .pair { display: flex; align-items: center; gap: 3px; min-width: 0; }
     .pair span {
       flex: 1 1 auto; min-width: 0;
-      font-size: 12px; color: var(--fg1);
+      font-size: 11px; color: var(--fg1);
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     input[type="number"] {
-      width: 50px; height: 24px; flex: none; padding: 0 5px;
-      font: inherit; font-size: 12px; font-variant-numeric: tabular-nums;
+      width: 42px; height: var(--h-field); flex: none; padding: 0 4px;
+      font: inherit; font-size: 11px; font-variant-numeric: tabular-nums;
       color: var(--fg0); background: var(--bg2);
       border: 0; text-align: right;
       -moz-appearance: textfield;
@@ -144,44 +159,57 @@
     input[type="number"]::-webkit-inner-spin-button,
     input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 
-    .trio { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
-    .quad { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px 8px; }
+    .trio { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+    .quad { display: grid; grid-template-columns: repeat(2, 1fr); gap: 3px 6px; }
     .quad[hidden] { display: none; }
-    .quad input[type="number"] { width: 42px; }
+    .quad input[type="number"] { width: 34px; }
 
-    .checks { display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px; }
-    .check { display: flex; align-items: center; gap: 6px; min-width: 0; cursor: pointer; }
+    .checks { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; }
+    .check { display: flex; align-items: center; gap: 5px; min-width: 0; cursor: pointer; }
     .check span {
-      font-size: 12px; color: var(--fg1);
+      font-size: 11px; color: var(--fg1);
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
-    .check input { width: 13px; height: 13px; flex: none; margin: 0; accent-color: var(--gr); cursor: pointer; }
+    .check input { width: 12px; height: 12px; flex: none; margin: 0; accent-color: var(--gr); cursor: pointer; }
 
     .pad { display: flex; gap: 1px; }
     .pad button {
-      width: 22px; height: 22px; padding: 0;
+      width: 18px; height: 18px; padding: 0;
       display: grid; place-items: center;
-      font-size: 12px; color: var(--fg1); background: var(--bg2);
+      font-size: 11px; color: var(--fg1); background: var(--bg2);
     }
     .pad button:hover { color: var(--fg0); background: var(--bg3); }
 
-    .actions { display: grid; grid-template-columns: 1fr 88px; gap: 5px; }
-    .actions .btn { width: 100%; height: 32px; text-align: center; justify-content: center; }
+    .actions { display: grid; grid-template-columns: 1fr 72px; gap: 4px; }
+    .actions .btn { width: 100%; height: var(--h-act); text-align: center; justify-content: center; }
 
     .est {
-      margin: 0; color: var(--fg2); font-size: 11.5px;
+      margin: 0; color: var(--fg2); font-size: 10.5px;
       font-variant-numeric: tabular-nums; text-align: center;
     }
     .status {
       flex: none;
-      margin: 0; padding: 6px 12px 7px;
-      min-height: 27px;
+      margin: 0; padding: var(--pad-s) 10px calc(var(--pad-s) + 1px);
+      min-height: var(--h-status);
       background: var(--bg0);
-      color: var(--fg2); font-size: 12px; line-height: 1.3;
+      color: var(--fg2); font-size: 11px; line-height: 1.3;
       font-variant-numeric: tabular-nums;
     }
     .status.warn { color: var(--fg0); }
     .status.go { color: var(--gr); }
+
+    /* drag the bottom edge to shrink the panel; height only, never wider */
+    .grip {
+      position: absolute; left: 0; right: 0; bottom: 0;
+      height: 6px; cursor: ns-resize;
+    }
+    .grip::after {
+      content: ""; position: absolute;
+      left: 50%; bottom: 2px; margin-left: -14px;
+      width: 28px; height: 2px; background: var(--bg3);
+    }
+    .grip:hover::after { background: var(--fg2); }
+    .folded .grip { display: none; }
 
     :focus-visible { outline: 1px solid var(--gr); outline-offset: -1px; }
   `;
@@ -287,6 +315,7 @@
       </div>
 
       <p class="status" id="status"></p>
+      <div class="grip" id="grip"></div>
     </section>
   `;
 
@@ -308,6 +337,7 @@
     delay: $('delay'), jitter: $('jitter'), limit: $('limit'),
     guard: $('guard'), canvasGuard: $('canvasGuard'),
     start: $('start'), stop: $('stop'), est: $('est'), status: $('status'),
+    grip: $('grip'), track: panel.querySelector('.track'), body: panel.querySelector('.body'),
   };
 
   const NUM_LIMITS = {
@@ -359,8 +389,10 @@
     els.source.title = T('tip_source');
     els.guard.parentElement.title = T('tip_guard');
     els.canvasGuard.parentElement.title = T('tip_cguard');
+    els.showGrid.parentElement.title = T('tip_grid');
     els.pad.title = T('tip_nudge');
     els.padGrid.title = T('tip_nudge_grid');
+    els.grip.title = T('tip_resize');
     els.fold.title = T(NS.store.cfg.folded ? 'fold_closed' : 'fold_open');
     updateStartButton();
   }
@@ -421,6 +453,7 @@
     els.start.disabled = !(g.ready() && s.n > 0);
     updateStartButton();
     renderEstimate();
+    applyHeight(cfg.panelH || maxHeight());
     setPos(cfg.pos);
   }
 
@@ -477,9 +510,77 @@
     els.panel.classList.add(phase);
   }
 
+  /* Height is user-adjustable downward only. The type size is fixed, so the
+     floor is whatever the content actually needs at maximum density; measuring
+     it means a drag can never clip or overflow a label. */
+  const maxHeight = () => Math.round(panel.offsetWidth * 4 / 3);
+  let minHeight = 0;
+
+  function measureMinHeight() {
+    /* the folded panel hides most of the content, so a measurement taken then
+       would be far too small */
+    if (panel.classList.contains('folded')) return minHeight;
+    const b = els.body;
+    const prevD = panel.style.getPropertyValue('--d');
+    const prev = { flex: b.style.flex, height: b.style.height, overflowY: b.style.overflowY };
+    /* body is a flex child, so its scrollHeight reports the stretched box, not
+       the content. Let it size to its content for the measurement. */
+    panel.style.setProperty('--d', '0');
+    b.style.flex = 'none';
+    b.style.height = 'auto';
+    b.style.overflowY = 'visible';
+    const need = els.head.offsetHeight + els.track.offsetHeight
+      + b.offsetHeight + els.status.offsetHeight;
+    b.style.flex = prev.flex;
+    b.style.height = prev.height;
+    b.style.overflowY = prev.overflowY;
+    if (prevD) panel.style.setProperty('--d', prevD); else panel.style.removeProperty('--d');
+    minHeight = Math.min(maxHeight(), Math.ceil(need));
+    return minHeight;
+  }
+
+  function applyHeight(h) {
+    const max = maxHeight();
+    if (!minHeight) measureMinHeight();
+    const min = Math.min(minHeight, max);
+    const height = Math.max(min, Math.min(max, h || max));
+    const d = max > min ? (height - min) / (max - min) : 1;
+    panel.style.setProperty('--h', `${height}px`);
+    panel.style.setProperty('--d', String(d));
+    return height;
+  }
+
+  /* Re-measure whenever the content itself changes shape, then re-apply the
+     stored height so it stays legal. */
+  function refitHeight() {
+    measureMinHeight();
+    applyHeight(NS.store.cfg.panelH || maxHeight());
+  }
+
+  (function resizable() {
+    let from = null;
+    els.grip.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0 || NS.store.cfg.folded) return;
+      e.preventDefault();
+      measureMinHeight();
+      from = { y: e.clientY, h: panel.offsetHeight };
+      try { els.grip.setPointerCapture(e.pointerId); } catch {}
+    });
+    els.grip.addEventListener('pointermove', (e) => {
+      if (!from) return;
+      from.last = applyHeight(from.h + (e.clientY - from.y));
+    });
+    els.grip.addEventListener('pointerup', (e) => {
+      if (!from) return;
+      try { els.grip.releasePointerCapture(e.pointerId); } catch {}
+      if (from.last) NS.store.set({ panelH: from.last });
+      from = null;
+    });
+  })();
+
   function setPos(pos) {
-    const w = panel.offsetWidth || 360;
-    const h = panel.offsetHeight || 480;
+    const w = panel.offsetWidth || 288;
+    const h = panel.offsetHeight || 384;
     const x = Math.max(0, Math.min(Math.max(0, innerWidth - w), pos.x));
     const y = Math.max(0, Math.min(Math.max(0, innerHeight - h), pos.y));
     NS.panelSlot.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px)`;
@@ -565,7 +666,7 @@
   els.canvasGuard.addEventListener('change', () => NS.store.set({ canvasGuard: els.canvasGuard.checked }));
   els.showGrid.addEventListener('change', () => NS.store.set({ showGrid: els.showGrid.checked }));
 
-  NS.i18n.onChange(() => { applyText(); paintStatus(); render(); });
+  NS.i18n.onChange(() => { applyText(); paintStatus(); render(); refitHeight(); });
   addEventListener('resize', () => setPos(NS.store.cfg.pos), { passive: true });
 
   NS.ui = {
@@ -586,6 +687,7 @@
     setPhase,
     updateStartButton,
     renderEstimate,
+    refitHeight,
     fmtTime,
   };
 })();

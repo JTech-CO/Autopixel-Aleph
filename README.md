@@ -23,11 +23,9 @@ Turbo runs flat out; Fast and Safe are paced to 75 % and 50 % of it. Delay and j
 
 No build step, no dependencies.
 
-1. On the **GitHub repository** page, click the **[Code]** button on the right and select **[Download ZIP]** to download the file.
-2. Extract the downloaded ZIP file.
-3. Enter `chrome://extensions` in your browser address bar and enable **Developer mode** in the top right corner.
-4. Click **Load unpacked** and select the extracted `autopixel-aleph` folder.
-5. Open `https://wplace.live/` or `https://youplace.live/` with the template overlay displayed.
+1. Open `chrome://extensions`, turn on **Developer mode**.
+2. **Load unpacked**, select the `autopixel-x` folder.
+3. Open `https://wplace.live/` or `https://youplace.live/` with your template overlay showing.
 
 ## Use
 
@@ -41,9 +39,9 @@ Full guide: [HOW-TO-USE.md](HOW-TO-USE.md).
 
 ## Info
 
-- **Version** 2.1.2, MIT licensed
+- **Version** 2.1.4, MIT licensed
 - **Platform** Chrome / Chromium, Manifest V3. Vanilla JavaScript, no remote code
-- **Privacy** [privacy-policy.html](<https://jtech-co.github.io/Autopixel-Aleph/privacy-policy.html>). Nothing is collected or transmitted
+- **Privacy** [privacy-policy.html](privacy-policy.html). Nothing is collected or transmitted
 - **Credits** input-engine approach adapted from
   [JTech-CO/wplace-hover](https://github.com/JTech-CO/wplace-hover) (MIT)
 

@@ -8,6 +8,8 @@
     /* header */
     lang_btn:        { en: '한국어',                    ko: 'ENG' },
     fold_open:       { en: 'Collapse',                  ko: '접기' },
+    tip_resize:      { en: 'Drag to make the panel shorter',
+                       ko: '드래그해서 패널 높이를 줄입니다' },
     fold_closed:     { en: 'Expand',                    ko: '펼치기' },
 
     /* section 1 — cell size */
@@ -28,7 +30,9 @@
     lbl_area:        { en: 'Area',                      ko: '구획' },
     val_area:        { en: '{w} × {h} = {n} px',        ko: '{w} × {h} = {n} px' },
     val_area_none:   { en: 'none',                      ko: '없음' },
-    lbl_grid:        { en: 'Show grid',                 ko: '격자 표시' },
+    lbl_grid:        { en: 'Grid',                      ko: '격자' },
+    tip_grid:        { en: 'Draw the grid lines over the selected area',
+                       ko: '선택한 구획 위에 격자선을 그립니다' },
     lbl_nudge:       { en: 'Nudge',                     ko: '이동' },
     tip_nudge:       { en: 'Move the area by one cell',
                        ko: '구획을 한 칸씩 이동' },

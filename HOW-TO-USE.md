@@ -1,4 +1,4 @@
-# AutoPixel-ℵ: How to use (v2.1.2)
+# AutoPixel-ℵ: How to use (v2.1.4)
 
 Per cell: **pointer move > `i` (colour pick) > click > click**, with render-frame waits between the
 steps. Nothing touches your real cursor.
@@ -13,6 +13,9 @@ Everything is driven from the panel. There are no keyboard shortcuts.
 3. The panel appears at the top left. Drag it by its header to move it, and use the chevron at its
    top right to collapse it to a third of its height. Collapsed it still shows the progress bar,
    Start / Stop and the status line, so you can leave it that way during a run.
+4. Drag the bottom edge to make the panel shorter. Only the padding shrinks, never the type, and it
+   stops at the height the content needs, so nothing is ever clipped. It cannot be made taller than
+   its default.
 
 `Overlay (i)` mode needs the template overlay drawn on the map, because the site's `i` eyedropper
 picks the colour under the pointer. Without one, switch the colour source to `Current` and pick a

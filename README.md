@@ -26,4 +26,4 @@ Rectangle, ellipse, freehand, union/subtraction, modal placement, pause/stop and
 
 Tests use browser fixtures reflecting public Wplace source, including delayed sampling and 1,000 alternating-color cells. They do not establish live-game error rates or server acceptance. Comparison uses the game's loaded state; another player's changes may not have arrived yet. Versioned site adapters stop on unsupported structures and may need updating after Wplace changes.
 
-Read CHANGES.md and tests/README.md for evidence and test commands. Pixel data stays in browser memory. The extension does not press Save/Publish. Original input engine credit: https://github.com/JTech-CO/wplace-hover
+Read CHANGES.md and tests/README.md for evidence and test commands. Pixel data stays in browser memory. The extension does not press Save/Publish. 

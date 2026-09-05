@@ -43,27 +43,33 @@
 
   const hooks = {
     onStart() {
+      ui.render();
+      lastTick = 0;
       ui.setPhase('busy');
       ui.setProgress(0);
       ui.updateStartButton();
     },
     onProgress(state) {
-      const handled = state.done + state.blocked;
-      ui.setProgress(handled / state.total);
+      const handled = state.done + state.blocked + state.matching + state.transparent;
       /* the cell in flight when a pause lands must not overwrite its message */
       if (state.paused) return;
       const now = performance.now();
       if (now - lastTick < 90 && handled < state.total) return;
       const rate = runner.rate();
-      /* rate() needs a moment of wall clock before it means anything */
-      if (rate <= 0 && handled < state.total) return;
+
       lastTick = now;
+      ui.setProgress(handled / state.total);
       ui.setStatus('st_running', {
-        done: state.done,
+        done: handled,
         total: state.total,
         rate: rate.toFixed(1),
         eta: ui.fmtTime(runner.etaMs()),
+        skipped: state.matching + state.transparent,
       }, 'go');
+      if (state.comparisonReason !== 'ready' && state.comparisonReason !== 'disabled' && state.comparisonReason !== 'native-ready') {
+        ui.els.compareState.textContent = i18n.t('compare_' + state.comparisonReason);
+      }
+      ui.renderDiagnostics?.();
     },
     onPause(state) {
       ui.setPhase('armed');
@@ -78,31 +84,39 @@
       hooks.onProgress(state);
     },
     onEnd(state) {
+      ui.render();
+      ui.renderDiagnostics?.();
       ui.setPhase(grid.ready() ? 'armed' : 'idle');
       ui.updateStartButton();
-      const handled = state.done + state.blocked;
+      const handled = state.done + state.blocked + state.matching + state.transparent;
       ui.setProgress(handled / Math.max(1, state.total));
 
       /* every cell rejected means the guard is wrong about this site, not that
          the area is bad, so say that instead of burying it in a count */
-      if (state.total && state.blocked === state.total && store.cfg.canvasGuard) {
+      if (state.total && state.blocked === state.total && !state.deferred && store.cfg.canvasGuard) {
         ui.setStatus('st_guard_all', null, 'warn');
         return;
       }
 
+      if (state.error) { ui.setStatus(/^native-/.test(state.error) ? 'compare_' + state.error : 'st_error', null, 'warn'); return; }
       const finished = handled >= state.total;
       const done = state.done;
       const total = state.total;
-      const blocked = state.blocked;
+      const blocked = state.blocked-state.deferred;
       const elapsed = runner.elapsedMs();
       const offscreen = offscreenInRun;
-      const clean = finished && !blocked && !offscreen;
+      const clean = finished && !state.blocked && !offscreen;
 
       ui.setStatusRaw(() => {
         let text = finished
           ? i18n.t('st_done', { done, time: ui.fmtTime(elapsed) })
           : i18n.t('st_stopped', { done, total });
         const notes = [];
+        if (state.matching) notes.push(i18n.t('st_matching', { n: state.matching }));
+        if (state.deferred) notes.push(i18n.t('st_deferred', {n:state.deferred}));
+        if (state.transparent) notes.push(i18n.t('st_transparent', { n: state.transparent }));
+        if (!['ready', 'disabled', 'native-ready'].includes(state.comparisonReason)) notes.push(i18n.t('compare_' + state.comparisonReason));
+        if (state.comparisonUnavailable) notes.push(i18n.t('st_compare_unknown'));
         if (offscreen) notes.push(i18n.t('st_offscreen', { n: offscreen }));
         if (blocked) notes.push(i18n.t('st_covered', { n: blocked }));
         return notes.length ? `${text} · ${notes.join(' · ')}` : text;
@@ -113,16 +127,20 @@
   function startRun() {
     if (!grid.ready()) { ui.setStatus('st_need_pitch', null, 'warn'); return; }
     const cfg = store.cfg;
+    if (cfg.comparisonMode !== 'native' && cfg.skipMatching && NS.matching.reference && !NS.matching.aligned()) {
+      ui.setStatus('compare_anchor', null, 'warn'); return;
+    }
     const { cells, offscreen } = grid.buildCells(cfg.order, cfg.limit);
     if (!cells.length) { ui.setStatus('st_need_area', null, 'warn'); return; }
 
     offscreenInRun = offscreen;
     overlay.resetProgress();
     const profile = engine.profileFrom(cfg);
-    runner.start(cells, profile, { guard: cfg.guard }, hooks);
+    runner.start(cells, profile, { guard: cfg.guard, skipMatching: cfg.skipMatching }, hooks);
   }
 
   NS.app = {
+    captureReady() { ui.setStatus('compare_ready', null, 'go'); },
     toggleLang() {
       if (runner.state.running) return;
       i18n.toggle();
@@ -143,6 +161,13 @@
         refresh();
       });
       ui.setPhase('armed');
+      ui.updateStartButton();
+    },
+
+    anchorTemplate() {
+      if (runner.state.running) return;
+      if (pick.mode !== 'none') { pick.cancel(); return; }
+      pick.startTemplateAnchor((key, vars) => ui.setStatus(key, vars), () => { idleStatus(); refresh(); });
       ui.updateStartButton();
     },
 

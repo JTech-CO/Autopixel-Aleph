@@ -16,6 +16,13 @@
   let onStatus = () => {};
   let onDone = () => {};
   let gapCells = 10;
+  let points = [];
+  let shape = 'rect';
+  let operation = 'replace';
+  function areaPreview(to) {
+    return shape === 'lasso' ? { kind: 'lasso', points: [...points, to] }
+      : { kind: 'rubber', shape, x0: dragFrom.x, y0: dragFrom.y, x1: to.x, y1: to.y };
+  }
 
   function setStatus(key, vars) { onStatus(key, vars); }
 
@@ -49,9 +56,11 @@
     onDone = doneFn || (() => {});
     if (!grid.ready()) { setStatus('st_need_pitch'); return; }
     begin('area');
+    shape = NS.store.cfg.shape;
+    operation = NS.store.cfg.selectionOp;
     dragFrom = null;
     overlay.setPreview(null);
-    setStatus('st_area_hint');
+    setStatus(shape === 'lasso' ? 'st_lasso_hint' : 'st_area_hint');
   }
 
   el.addEventListener('pointerdown', (e) => {
@@ -63,6 +72,12 @@
     /* teaches the draw-surface guard what this site draws the map on */
     NS.engine.rememberTarget(x, y);
 
+    if (mode === 'anchor') {
+      NS.matching.setAnchor(x, y);
+      stop();
+      onDone({ ok: true, mode: 'anchor' });
+      return;
+    }
     if (mode === 'calib') {
       if (!calibA) {
         calibA = { x, y };
@@ -84,8 +99,9 @@
 
     if (mode === 'area') {
       dragFrom = { x, y };
+      points = [{ x, y }];
       try { el.setPointerCapture(e.pointerId); } catch {}
-      overlay.setPreview({ kind: 'rubber', x0: x, y0: y, x1: x, y1: y });
+      overlay.setPreview(areaPreview({ x, y }));
     }
   });
 
@@ -95,7 +111,10 @@
       return;
     }
     if (mode === 'area' && dragFrom) {
-      overlay.setPreview({ kind: 'rubber', x0: dragFrom.x, y0: dragFrom.y, x1: e.clientX, y1: e.clientY });
+      const to = { x: e.clientX, y: e.clientY };
+      const last = points[points.length - 1];
+      if (shape === 'lasso' && points.length < 20000 && Math.hypot(to.x - last.x, to.y - last.y) >= 2) points.push(to);
+      overlay.setPreview(areaPreview(to));
     }
   });
 
@@ -106,21 +125,38 @@
     try { el.releasePointerCapture(e.pointerId); } catch {}
 
     const pitch = grid.state.pitch;
-    if (Math.abs(to.x - from.x) < pitch * 0.5 && Math.abs(to.y - from.y) < pitch * 0.5) {
+    if (shape !== 'lasso' && Math.abs(to.x - from.x) < pitch * 0.5 && Math.abs(to.y - from.y) < pitch * 0.5) {
       dragFrom = null;
       overlay.setPreview(null);
       setStatus('st_area_small');
       return;
     }
 
-    grid.setRegionFromClient(from.x, from.y, to.x, to.y);
+    const path = shape === 'lasso' ? [...points, to] : [from, to];
+    if ((shape === 'lasso' && path.length < 3) || !grid.selectShape(path, shape, operation)) {
+      dragFrom = null;
+      overlay.setPreview(null);
+      setStatus('st_area_invalid');
+      return;
+    }
     stop();
     onDone({ ok: true, mode: 'area', size: grid.size() });
+  });
+
+  el.addEventListener('pointercancel', () => {
+    if (mode === 'area') { dragFrom = null; points = []; overlay.setPreview(null); }
   });
 
   NS.pick = {
     get mode() { return mode; },
     startCalibration,
+    startTemplateAnchor(statusFn, doneFn) {
+      if (!grid.ready()) { statusFn?.('st_need_pitch'); return; }
+      onStatus = statusFn || (() => {});
+      onDone = doneFn || (() => {});
+      begin('anchor');
+      setStatus('st_anchor_hint');
+    },
     startArea,
     cancel() {
       if (mode === 'none') return;

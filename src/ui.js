@@ -54,7 +54,13 @@
       -webkit-user-select: none;
     }
     /* collapsed: a third of the height. Setup groups go, run controls stay. */
-    .panel.folded { height: calc(var(--w) * 4 / 9); }
+    .panel.folded { height: auto; min-height: calc(var(--w) * 4 / 9); }
+    .panel [hidden] { display: none !important; }
+    .panel select { width: 100%; min-width: 0; color: var(--fg0); background: var(--bg2); border: 0; font: inherit; }
+    .panel input[type="file"] { width: 100%; font: inherit; font-size: 10px; }
+    .panel details { font-size: 11px; }
+    .panel summary { cursor: pointer; color: var(--fg1); }
+    .panel .compare-note { color: var(--fg1); margin: 4px 0; font-size: 10px; }
     .panel input { user-select: text; -webkit-user-select: text; }
     .panel * { border-radius: 0; box-shadow: none; transition: none; }
 
@@ -100,7 +106,8 @@
     .body::-webkit-scrollbar { width: 6px; }
     .body::-webkit-scrollbar-thumb { background: var(--bg3); }
     .folded .group { display: none; }
-    .folded .body { justify-content: center; overflow: hidden; }
+    .folded .body { display: none; }
+    .folded .actions { margin-top: auto; }
 
     .group { display: flex; flex-direction: column; gap: var(--gap-g); }
     .label {
@@ -180,11 +187,11 @@
     }
     .pad button:hover { color: var(--fg0); background: var(--bg3); }
 
-    .actions { display: grid; grid-template-columns: 1fr 72px; gap: 4px; }
+    .actions { flex: none; margin: 4px 10px; display: grid; grid-template-columns: 1fr 72px; gap: 4px; }
     .actions .btn { width: 100%; height: var(--h-act); text-align: center; justify-content: center; }
 
     .est {
-      margin: 0; color: var(--fg2); font-size: 10.5px;
+      flex: none; margin: 0 10px 4px; color: var(--fg2); font-size: 10.5px;
       font-variant-numeric: tabular-nums; text-align: center;
     }
     .status {
@@ -268,6 +275,8 @@
 
         <section class="group">
           <h2 class="label" data-lbl="sec_area"></h2>
+${seg('shape', ['rect', 'ellipse', 'lasso'])}
+${seg('selectionOp', ['replace', 'add', 'subtract'])}
           <div class="row">
             <button class="btn grow" id="area" type="button"></button>
             <button class="btn" id="clear" type="button"></button>
@@ -307,12 +316,35 @@
           </div>
         </section>
 
+        <section class="group">
+          <details id="comparison">
+            <summary data-lbl="lbl_comparison"></summary>
+            <p class="compare-note" data-lbl="tip_native_auto" id="nativeNote"></p>
+            ${seg('comparisonMode', ['native', 'snapshot', 'live'])}
+            <div id="manualComparison">
+            <p class="compare-note" data-lbl="tip_comparison"></p>
+            <input id="templateFile" type="file" accept="image/png,image/webp">
+            <button class="btn" id="anchorTemplate" type="button" data-lbl="btn_anchor"></button>
+            
+            <p class="compare-note" data-lbl="tip_native_capture"></p>
+            <button class="btn" id="captureBoard" type="button" data-lbl="btn_capture"></button>
+            <div class="row">
+              <select class="grow" id="boardCanvas" aria-label="Comparison canvas"></select>
+              <button class="btn" id="refreshCanvas" data-lbl="btn_refresh" type="button"></button>
+            </div>
+            </div>
+            <label class="check"><input type="checkbox" id="skipMatching"><span data-lbl="lbl_skip"></span></label>
+            <p class="compare-note" id="compareState"></p>
+          </details>
+        </section>
+      </div>
         <div class="actions">
           <button class="btn primary" id="start" type="button"></button>
           <button class="btn" id="stop" type="button"></button>
         </div>
         <p class="est" id="est"></p>
-      </div>
+        <p class="est" id="diagnostics"></p>
+        <p class="est" id="compareBrief"></p>
 
       <p class="status" id="status"></p>
       <div class="grip" id="grip"></div>
@@ -325,6 +357,10 @@
   const $ = (id) => panel.querySelector('#' + id);
   const els = {
     panel,
+    shape: $('shape'), selectionOp: $('selectionOp'),
+    comparisonMode: $('comparisonMode'), anchorTemplate: $('anchorTemplate'), captureBoard: $('captureBoard'), diagnostics: $('diagnostics'), compareBrief: $('compareBrief'),
+    comparison: $('comparison'), templateFile: $('templateFile'), boardCanvas: $('boardCanvas'),
+    refreshCanvas: $('refreshCanvas'), skipMatching: $('skipMatching'), compareState: $('compareState'),
     head: $('head'), lang: $('lang'), fold: $('fold'), bar: $('bar'),
     calib: $('calib'), gapCells: $('gapCells'), pitchValue: $('pitchValue'),
     pitchDown: $('pitchDown'), pitchUp: $('pitchUp'),
@@ -352,6 +388,9 @@
   }
 
   const SEG_LABELS = {
+    comparisonMode: { native: 'compare_auto', snapshot: 'compare_manual', live: 'compare_separate' },
+    shape: { rect: 'shape_rect', ellipse: 'shape_ellipse', lasso: 'shape_lasso' },
+    selectionOp: { replace: 'sel_replace', add: 'sel_add', subtract: 'sel_subtract' },
     speed: { safe: 'sp_safe', fast: 'sp_fast', turbo: 'sp_turbo', custom: 'sp_custom' },
     source: { overlay: 'src_overlay', current: 'src_current' },
     order: { snake: 'ord_snake', rows: 'ord_rows', cols: 'ord_cols', random: 'ord_random' },
@@ -416,6 +455,20 @@
 
     els.panel.classList.toggle('folded', cfg.folded);
     els.gapCells.value = String(cfg.gapCells);
+    setSeg('shape', cfg.shape);
+    setSeg('selectionOp', cfg.selectionOp);
+    els.skipMatching.checked = cfg.skipMatching;
+    for (const control of [els.templateFile, els.boardCanvas, els.refreshCanvas, els.skipMatching]) control.disabled = NS.runner.state.running;
+    setSeg('comparisonMode', cfg.comparisonMode);
+    $('manualComparison').hidden = cfg.comparisonMode === 'native';
+    $('nativeNote').hidden = cfg.comparisonMode !== 'native';
+    els.compareState.textContent = cfg.comparisonMode === 'native'
+      ? T(cfg.source === 'overlay' ? 'compare_native-ready' : 'compare_native-current')
+      : T('compare_' + NS.matching.status());
+    els.compareBrief.textContent = cfg.comparisonMode === 'native' || (cfg.skipMatching && NS.matching.reference) ? els.compareState.textContent : '';
+    els.captureBoard.hidden = cfg.comparisonMode !== 'snapshot';
+    els.anchorTemplate.disabled = !NS.matching.reference || !g.ready() || NS.runner.state.running;
+    renderDiagnostics();
     setSeg('speed', cfg.speed);
     setSeg('source', cfg.source);
     setSeg('order', cfg.order);
@@ -530,7 +583,7 @@
     b.style.height = 'auto';
     b.style.overflowY = 'visible';
     const need = els.head.offsetHeight + els.track.offsetHeight
-      + b.offsetHeight + els.status.offsetHeight;
+      + b.offsetHeight + els.status.offsetHeight + els.start.parentElement.offsetHeight + els.est.offsetHeight + 12;
     b.style.flex = prev.flex;
     b.style.height = prev.height;
     b.style.overflowY = prev.overflowY;
@@ -632,10 +685,10 @@
     app().nudgeOrigin?.(dx, dy);
   });
 
-  for (const group of ['speed', 'source', 'order']) {
+  for (const group of ['speed', 'source', 'order', 'shape', 'selectionOp', 'comparisonMode']) {
     els[group].addEventListener('click', (e) => {
       const btn = e.target.closest('button[data-v]');
-      if (!btn) return;
+      if (!btn || NS.runner.state.running || NS.pick.mode !== 'none') return;
       NS.store.set({ [group]: btn.dataset.v });
     });
   }
@@ -666,6 +719,66 @@
   els.canvasGuard.addEventListener('change', () => NS.store.set({ canvasGuard: els.canvasGuard.checked }));
   els.showGrid.addEventListener('change', () => NS.store.set({ showGrid: els.showGrid.checked }));
 
+  function renderDiagnostics() {
+    const r = NS.runner, d = r.diagnostics();
+    if (!r.state.startedAt) { els.diagnostics.textContent = ''; return; }
+    els.diagnostics.textContent = T('diag_timing', {
+      frame: d.frameMs.toFixed(1),
+      paint: (d.paintMs / Math.max(1, d.painted)).toFixed(1),
+      compare: (d.compareMs / Math.max(1, r.state.total)).toFixed(1),
+    });
+    if(r.state.error && d.verification?.expected !== null && d.verification?.expected !== undefined) {
+      els.diagnostics.textContent += ' · ' + T('diag_verify', {
+        phase: T('verify_'+d.verification.phase),
+        expected: d.verification.expected,
+        selected: d.verification.selected || '?',
+        attempt: d.verification.attempt,
+      });
+    }
+  }
+  els.anchorTemplate.addEventListener('click', () => app().anchorTemplate?.());
+  els.captureBoard.addEventListener('click', async () => {
+    if (NS.runner.state.running) return;
+    els.captureBoard.disabled = true;
+    els.compareState.textContent = T('compare_reading');
+    try {
+      const ok = await NS.matching.capture();
+      render();
+      if (ok) app().captureReady?.();
+    } catch { els.compareState.textContent = T('compare_unreadable'); }
+    finally { els.captureBoard.disabled = false; }
+  });
+  let canvasOptions = [];
+  function refreshCanvases() {
+    const previous = els.boardCanvas.value === '' ? null : canvasOptions[Number(els.boardCanvas.value)];
+    canvasOptions = NS.matching.canvases();
+    els.boardCanvas.replaceChildren(new Option(T('select_canvas'), ''));
+    canvasOptions.forEach((c, i) => {
+      const hint = c.id || c.className || c.parentElement?.getAttribute('aria-label') || 'canvas';
+      els.boardCanvas.add(new Option((i + 1) + '. ' + hint + ' · ' + c.width + '×' + c.height, String(i)));
+    });
+    const index = previous ? canvasOptions.indexOf(previous) : -1;
+    els.boardCanvas.value = index >= 0 ? String(index) : '';
+    NS.matching.setBoard(index >= 0 ? previous : null);
+  }
+  els.refreshCanvas.addEventListener('click', () => { refreshCanvases(); render(); });
+  els.boardCanvas.addEventListener('change', () => {
+    NS.matching.setBoard(els.boardCanvas.value === '' ? null : canvasOptions[Number(els.boardCanvas.value)]);
+    render();
+  });
+  els.templateFile.addEventListener('change', async () => {
+    try {
+      await NS.matching.load(els.templateFile.files[0]);
+      render();
+    } catch { els.compareState.textContent = T('st_template_error'); }
+  });
+  els.skipMatching.addEventListener('change', () => NS.store.set({ skipMatching: els.skipMatching.checked }));
+  els.comparison.addEventListener('toggle', () => {
+    if (els.comparison.open) { refreshCanvases(); render(); }
+    refitHeight();
+  });
+  refreshCanvases();
+
   NS.i18n.onChange(() => { applyText(); paintStatus(); render(); refitHeight(); });
   addEventListener('resize', () => setPos(NS.store.cfg.pos), { passive: true });
 
@@ -687,6 +800,7 @@
     setPhase,
     updateStartButton,
     renderEstimate,
+    renderDiagnostics,
     refitHeight,
     fmtTime,
   };

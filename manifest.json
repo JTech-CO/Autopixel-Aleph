@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "AutoPixel-ℵ",
-  "version": "2.1.4",
-  "description": "Select an area on wplace.live or youplace.live and fill it from your template overlay, one synthetic click per pixel.",
+  "version": "2.2.0",
+  "description": "Select rectangles, ellipses or freehand areas, compare template pixels, and paint Wplace or Youplace.",
   "icons": {
     "16": "icons/logo16.png",
     "32": "icons/logo32.png",
@@ -30,6 +30,20 @@
         "https://*.youplace.live/*"
       ],
       "js": [
+        "src/canvas-bridge.js",
+        "src/native-bridge.js"
+      ],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": [
+        "https://wplace.live/*",
+        "https://*.wplace.live/*",
+        "https://youplace.live/*",
+        "https://*.youplace.live/*"
+      ],
+      "js": [
         "src/i18n.js",
         "src/shell.js",
         "src/store.js",
@@ -37,6 +51,8 @@
         "src/grid.js",
         "src/overlay.js",
         "src/runner.js",
+        "src/native.js",
+        "src/matching.js",
         "src/pick.js",
         "src/ui.js",
         "src/main.js"

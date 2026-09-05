@@ -11,6 +11,15 @@
     reason: '',        // '' | 'user' | 'guard' | 'hidden'
     done: 0,
     blocked: 0,
+    matching: 0,
+    transparent: 0,
+    comparisonUnavailable: false,
+    comparisonReason: '',
+    compareMs: 0,
+    paintMs: 0,
+    unverified: 0,
+    deferred: 0,
+    error: null,
     total: 0,
     startedAt: 0,
     pausedAt: 0,
@@ -36,8 +45,9 @@
   };
 
   const etaMs = () => {
-    const r = rate();
-    const left = state.total - state.done - state.blocked;
+    const seconds = elapsedMs() / 1000;
+    const r = seconds > 0 ? (state.done + state.blocked + state.matching + state.transparent) / seconds : 0;
+    const left = state.total - state.done - state.blocked - state.matching - state.transparent;
     return r > 0 ? (left / r) * 1000 : 0;
   };
 
@@ -118,6 +128,7 @@
      achieved ratio below target; a deadline lets the next wait absorb the slop. */
   function waitAfterCell(profile, cellStart) {
     const jitterMs = jitteredDelay(profile.delay, profile.jitter);
+    if (profile.targetRate > 0) return Math.max(0, cellStart + 1000/profile.targetRate - performance.now()) + jitterMs;
     const pace = profile.pace;
     if (!(pace > 0) || pace >= 1 || cellMsAvg <= 0) return jitterMs;
 
@@ -137,6 +148,15 @@
       reason: '',
       done: 0,
       blocked: 0,
+      matching: 0,
+      transparent: 0,
+      comparisonUnavailable: false,
+    comparisonReason: '',
+    compareMs: 0,
+    paintMs: 0,
+      unverified: 0,
+    deferred: 0,
+    error: null,
       total: cells.length,
       startedAt: performance.now(),
       pausedAt: 0,
@@ -147,10 +167,28 @@
     cellMsAvg = 0;
     paceDeadline = 0;
     profile.guardTarget = profile.canvasGuard ? NS.engine.resolveGuardTarget() : null;
+    const native = !!profile.nativeVerify;
+    const comparison = opts.skipMatching && !native ? NS.matching.begin() : null;
+    state.comparisonReason = native ? 'native-ready' : opts.skipMatching ? NS.matching.status() : 'disabled';
+    NS.engine.resetTiming();
+    profile.shouldAbort = () => state.stopRequested || state.paused || document.hidden;
+    let lastPaintAt=0;
+    profile.beforePaint = async () => {
+      if(!profile.targetRate || !lastPaintAt) return;
+      while(!profile.shouldAbort()) {
+        const left=lastPaintAt+1000/profile.targetRate-performance.now();
+        if(left<=0) return;
+        await NS.engine.sleep(Math.min(20,left));
+      }
+    };
     installGuards(opts.guard);
     hooks.onStart?.(state);
 
     try {
+      if (native) {
+        const ready = await NS.native.begin(NS.engine.resolveGuardTarget());
+        if (!ready.ok) { state.error = ready.reason; state.comparisonReason = ready.reason; return; }
+      }
       for (let i = 0; i < cells.length; i++) {
         if (state.stopRequested) break;
 
@@ -163,12 +201,75 @@
         NS.overlay.setCurrent(cell);
 
         const cellStart = performance.now();
+        const compareStart = performance.now();
+        const observed = native ? await NS.native.read(cell, profile.shouldAbort) : null;
+        if (native && !observed.ok) {
+          if (profile.shouldAbort()) { if(state.stopRequested) break; i--; continue; }
+          state.error = observed.reason; state.comparisonReason = observed.reason; state.unverified++; break;
+        }
+        const comparisonResult = native ? (observed.kind === 'matching' && !opts.skipMatching ? 'paint' : observed.kind)
+          : comparison ? await NS.matching.check(cell, comparison) : 'unknown';
+        if (native) {
+          profile.expectedColor = observed.color;
+          profile.expectedRGBA = observed.rgba;
+          profile.nativeKind = observed.nativeKind;
+          profile.recheck = async () => {
+            const value = await NS.native.read(cell, profile.shouldAbort);
+            return value.kind === 'matching' && !opts.skipMatching ? {...value,kind:'paint'} : value;
+          };
+        }
+        state.compareMs += performance.now() - compareStart;
+        if (state.stopRequested) break;
+        if (state.paused) { i--; continue; }
+        state.comparisonUnavailable ||= !!comparison?.unavailable;
+        if (comparisonResult === 'outside') {
+          state.blocked++;
+          hooks.onProgress?.(state, cell);
+          if (i % 128 === 0) await NS.engine.sleep(1);
+          continue;
+        }
+        if (comparisonResult === 'matching' || comparisonResult === 'transparent') {
+          state[comparisonResult]++;
+          NS.overlay.markCell(cell.c, cell.r);
+          hooks.onProgress?.(state, cell);
+          // Yield even when all cells are transparent so Stop remains usable.
+          if (i % 128 === 0) await NS.engine.sleep(0.1);
+          paceDeadline = 0;
+          continue;
+        }
         const result = await NS.engine.paintCell(cell.x, cell.y, profile);
+        state.paintMs += performance.now() - cellStart;
 
+        if (result === 'cancelled') {
+          if (state.stopRequested) break;
+          if (document.hidden) pause('hidden');
+          i--;
+          continue;
+        }
+        if (result === 'unverified') {
+          state.unverified++;
+          state.error = profile.failureReason || 'native-selection';
+          state.comparisonReason = state.error;
+          break;
+        }
+        if(result==='deferred') {
+          state.deferred++;
+          state.unverified++;
+          state.blocked++;
+          hooks.onProgress?.(state,cell);
+          continue;
+        }
+        if (result === 'matching') {
+          state.matching++;
+          NS.overlay.markCell(cell.c,cell.r);
+          hooks.onProgress?.(state,cell);
+          continue;
+        }
         if (result === 'ok') {
           /* a skipped cell returns instantly and would skew the pacing average */
           const cellMs = performance.now() - cellStart;
           cellMsAvg = cellMsAvg > 0 ? cellMsAvg * 0.75 + cellMs * 0.25 : cellMs;
+          lastPaintAt=performance.now();
           state.done++;
           NS.overlay.markCell(cell.c, cell.r);
         } else {
@@ -176,20 +277,32 @@
         }
         hooks.onProgress?.(state, cell);
 
-        if (i < cells.length - 1) {
+        if (result === 'ok' && i < cells.length - 1 && !state.stopRequested && !state.paused) {
           const wait = waitAfterCell(profile, cellStart);
           if (wait > 0) await NS.engine.sleep(wait);
         }
       }
+    } catch (error) {
+      state.error = String(error?.message || error);
     } finally {
       state.endedAt = performance.now();
+      removeGuards();
+      if (native) await NS.native.end();
       state.running = false;
       state.paused = false;
-      removeGuards();
       NS.overlay.setCurrent(null);
+      if (state.done && comparison?.mode === 'snapshot') NS.matching.invalidate();
       hooks.onEnd?.(state);
     }
   }
 
-  NS.runner = { state, start, pause, resume, toggle, stop, rate, etaMs, elapsedMs };
+  function diagnostics() {
+    return {
+      version: '2.2.0', elapsedMs: elapsedMs(), painted: state.done, matched: state.matching,
+      unverified: state.unverified, deferred: state.deferred, verification: {...NS.engine.verification}, transparent: state.transparent, blocked: state.blocked, comparison: state.comparisonReason,
+      compareMs: state.compareMs, paintMs: state.paintMs,
+      frameMs: NS.engine.timing.frameWaits ? NS.engine.timing.frameWaitMs / NS.engine.timing.frameWaits : 0,
+    };
+  }
+  NS.runner = { diagnostics, state, start, pause, resume, toggle, stop, rate, etaMs, elapsedMs };
 })();

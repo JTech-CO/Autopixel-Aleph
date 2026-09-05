@@ -1,51 +1,29 @@
-# AutoPixel-ℵ
+# AutoPixel-ℵ 2.2.0
 
-**English** | [한국어](README-KR.md)
+[한국어](README-KR.md)
 
-> A Chrome extension that fills a selected area on wplace.live or youplace.live from your template
-> overlay, one synthetic click per pixel. Your cursor is never touched.
+Load this folder as an unpacked Chrome extension, disable older copies, and reload the Wplace tab as well as the extension.
 
-## Speed
+Open the official template, calibrate the grid, select an area, choose **Overlay (i)** and **Official auto**, then Start. No second PNG, image dimensions or template anchor are required.
 
-One cell = `pointermove` > `i` (eyedropper) > click > click, with render-frame waits between the
-steps. Measured on a 60 Hz display.
+## Official auto
 
-| Preset | ms / cell | px / s |
-|---|---|---|
-| Safe | 336 | 3.0 |
-| Fast *(default)* | 91 | 11.0 |
-| Turbo | 68 | 14.7 |
-| Turbo + `Current` colour | 51 | 19.5 |
+On the map, keep the native template build view visible. The extension reads the official quantized template and comparison state. It temporarily enables the official incorrect-pixel highlight and restores the previous choice when the run ends.
 
-Turbo runs flat out; Fast and Safe are paced to 75 % and 50 % of it. Delay and jitter default to 0.
+In the Alliance Pixel editor and HQ, the adapter observes the specific template renderer's source data and compares the underlying board canvas. It uses the current dragged placement. If the template was open before the adapter attached, close and reopen the official overlay once.
 
-## Install
+Transparent/outside cells are not painted. Exact matches are skipped when enabled. Unknown, unloaded or unsupported data never falls through to painting. Completed wrong-color samples are retried at most three times, then left unpainted so the remaining cells can continue. An outstanding sample is awaited before any retry. Current-color mode does not use official-template comparisons.
 
-No build step, no dependencies.
+## Input and speed
 
-1. Open `chrome://extensions`, turn on **Developer mode**.
-2. **Load unpacked**, select the `autopixel-x` folder.
-3. Open `https://wplace.live/` or `https://youplace.live/` with your template overlay showing.
+Two i presses arm the picker. The first click samples; a new picker-to-paint transition and the expected palette color must be confirmed before the paint click. Equal successive i results do not prove the board is already correct. Repeated colors still require a fresh completed sample.
 
-## Use
+Safe, Fast and Turbo have ceilings of 10, 20 and 30 px/s. Slow sampling/rendering lowers throughput. There are no catch-up paint bursts.
 
-Everything is in the panel; there are no keyboard shortcuts.
+Rectangle, ellipse, freehand, union/subtraction, modal placement, pause/stop and input guards remain available. PNG snapshot and separate-canvas modes retain the older optional manual workflow.
 
-1. **Calibrate**, click the centre of any cell, then a cell `Apart` cells away (default 10).
-2. **Select area**, drag a box over the part of the template you want filled.
-3. **Start**.
+## Validation and limits
 
-Full guide: [HOW-TO-USE.md](HOW-TO-USE.md).
+Tests use browser fixtures reflecting public Wplace source, including delayed sampling and 1,000 alternating-color cells. They do not establish live-game error rates or server acceptance. Comparison uses the game's loaded state; another player's changes may not have arrived yet. Versioned site adapters stop on unsupported structures and may need updating after Wplace changes.
 
-## Info
-
-- **Version** 2.1.4, MIT licensed
-- **Platform** Chrome / Chromium, Manifest V3. Vanilla JavaScript, no remote code
-- **Privacy** [privacy-policy.html](privacy-policy.html). Nothing is collected or transmitted
-- **Credits** input-engine approach adapted from
-  [JTech-CO/wplace-hover](https://github.com/JTech-CO/wplace-hover) (MIT)
-
-## Disclaimer
-
-An automation tool. These sites may restrict automation and **you are solely responsible** for the
-consequences, including account action. Use only your own account and paint charges.
+Read CHANGES.md and tests/README.md for evidence and test commands. Pixel data stays in browser memory. The extension does not press Save/Publish. Original input engine credit: https://github.com/JTech-CO/wplace-hover

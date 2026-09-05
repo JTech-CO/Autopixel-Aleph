@@ -7,6 +7,7 @@
   const KEY = 'autoPixelX';
 
   const DEFAULTS = {
+    nativeVersion: 1,
     lang: 'en',
     folded: false,
     pos: { x: 12, y: 12 },
@@ -17,6 +18,11 @@
     origin: null,          // { x, y } client coords of one known cell centre
     region: null,          // { c0, r0, c1, r1 } inclusive cell indices
 
+    mask: null,
+    shape: 'rect',
+    selectionOp: 'replace',
+    skipMatching: true,
+    comparisonMode: 'native',
     speed: 'fast',         // safe | fast | turbo | custom
     custom: { moveFrames: 1, holdFrames: 1, gapFrames: 1, clicks: 2 },
     source: 'overlay',     // overlay | current
@@ -44,6 +50,7 @@
     const r = s.region && typeof s.region === 'object' ? s.region : null;
 
     return {
+      nativeVersion: 1,
       lang: s.lang === 'ko' ? 'ko' : 'en',
       folded: Boolean(s.folded),
       pos: { x: num(p.x, DEFAULTS.pos.x, -4000, 8000), y: num(p.y, DEFAULTS.pos.y, -4000, 8000) },
@@ -56,6 +63,11 @@
       region: r && ['c0', 'r0', 'c1', 'r1'].every((k) => Number.isFinite(Number(r[k])))
         ? { c0: Math.round(r.c0), r0: Math.round(r.r0), c1: Math.round(r.c1), r1: Math.round(r.r1) } : null,
 
+      mask: Array.isArray(s.mask) ? [...new Set(s.mask.filter(k => typeof k === 'string' && /^-?\d+,-?\d+$/.test(k)))].slice(0, 1000000) : null,
+      shape: ['rect', 'ellipse', 'lasso'].includes(s.shape) ? s.shape : 'rect',
+      selectionOp: ['replace', 'add', 'subtract'].includes(s.selectionOp) ? s.selectionOp : 'replace',
+      skipMatching: s.skipMatching !== false,
+      comparisonMode: ['live','snapshot','native'].includes(s.comparisonMode) ? s.comparisonMode : 'native',
       speed: ['safe', 'fast', 'turbo', 'custom'].includes(s.speed) ? s.speed : DEFAULTS.speed,
       custom: {
         moveFrames: Math.round(num(c.moveFrames, 1, 0, 10)),
@@ -99,7 +111,7 @@
     const finish = (raw) => {
       if (called) return;
       called = true;
-      if (raw) Object.assign(cfg, normalize({ ...cfg, ...raw }));
+      if (raw) Object.assign(cfg, normalize({ ...cfg, ...raw, ...(raw.nativeVersion ? {} : {comparisonMode:'native'}) }));
       done?.(cfg);
     };
     try {

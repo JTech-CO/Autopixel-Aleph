@@ -22,6 +22,11 @@
     'transform: none !important',
     'filter: none !important',
     'contain: layout style',
+    'width: 100vw !important',
+    'height: 100vh !important',
+    'max-width: none !important',
+    'max-height: none !important',
+    'overflow: visible !important',
   ].join(';');
 
   const shadow = host.attachShadow({ mode: 'open' });
@@ -81,13 +86,49 @@
 
   shadow.append(base, canvas, capture, panelSlot);
 
-  /* The site is a SPA; if it ever replaces <body> we put the host back. */
-  function mount() {
-    if (host.isConnected) return;
-    (document.body || document.documentElement).appendChild(host);
+  // z-index cannot escape a modal's top layer or its inert subtree.
+  // Keep the manual popover inside the current modal, then raise it above it.
+  let lastModal = null;
+  let scheduled = false;
+  const modalOrder = [];
+  if (host.showPopover) host.setAttribute('popover', 'manual');
+  function mount(raise = false) {
+    const dialogs = [...document.querySelectorAll('dialog:modal')];
+    for (const d of dialogs) if (!modalOrder.includes(d)) modalOrder.push(d);
+    for (let i = modalOrder.length - 1; i >= 0; i--) {
+      if (!dialogs.includes(modalOrder[i])) modalOrder.splice(i, 1);
+    }
+    const modal = modalOrder.at(-1) || null;
+    const parent = modal || document.fullscreenElement || document.body || document.documentElement;
+    const moved = host.parentElement !== parent;
+    if (moved) parent.appendChild(host);
+    if (host.showPopover) {
+      try {
+        if ((raise || moved || modal !== lastModal) && host.matches(':popover-open')) host.hidePopover();
+        if (!host.matches(':popover-open')) host.showPopover();
+      } catch { /* Older browsers retain the fixed z-index fallback. */ }
+    }
+    lastModal = modal;
   }
+  function schedule(raise = false) {
+    if (scheduled) return;
+    scheduled = true;
+    queueMicrotask(() => { scheduled = false; mount(raise); });
+  }
+  new MutationObserver(records => {
+    if (records.some(r => r.target !== host && !host.contains(r.target))) schedule();
+  }).observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ['open'] });
+  document.addEventListener('toggle', e => {
+    if (e.target === host || NS.isOurs?.(e.target)) return;
+    if (e.target.matches?.('dialog:modal') && e.newState === 'open') {
+      const i = modalOrder.indexOf(e.target);
+      if (i >= 0) modalOrder.splice(i, 1);
+      modalOrder.push(e.target);
+    }
+    schedule(e.newState === 'open');
+  }, true);
+  document.addEventListener('fullscreenchange', () => schedule(true));
   mount();
-  setInterval(mount, 1500);
 
   /* Nothing inside the host should leak an event to the page.
      These MUST stay on the bubble phase. A capture-phase listener here would
@@ -106,5 +147,9 @@
   NS.captureEl = capture;
   NS.panelSlot = panelSlot;
 
-  NS.isOurs = (el) => !!(el && (el === host || host.contains(el)));
+  NS.isOurs = (el) => {
+    for (let node = el; node; node = node.getRootNode?.().host)
+      if (node === host || host.contains(node)) return true;
+    return false;
+  };
 })();

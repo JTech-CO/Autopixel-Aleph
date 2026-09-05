@@ -10,28 +10,28 @@
 
   const KEY_I = { key: 'i', code: 'KeyI', keyCode: 73, charCode: 105 };
 
-  /* `pace` is the share of the unthrottled rate a preset may run at. Frame
-     counts alone do not separate the tiers: once the site is the bottleneck an
-     extra frame wait vanishes into work it was doing anyway and Fast matches
-     Turbo, so the runner paces off the per-cell time it measures instead. */
+  // Fixed ceilings; render/selection completion may lower the achieved rate.
   const PRESETS = {
-    safe: { moveFrames: 2, holdFrames: 2, gapFrames: 1, clicks: 2, pace: 0.5 },
-    fast: { moveFrames: 1, holdFrames: 1, gapFrames: 0, clicks: 2, pace: 0.75 },
-    turbo: { moveFrames: 1, holdFrames: 1, gapFrames: 0, clicks: 2, pace: 1 },
+    safe: { moveFrames: 1, holdFrames: 0, keyFrames: 1, gapFrames: 0, clicks: 2, targetRate: 10, pace: 1 },
+    fast: { moveFrames: 1, holdFrames: 0, keyFrames: 1, gapFrames: 0, clicks: 2, targetRate: 20, pace: 1 },
+    turbo: { moveFrames: 1, holdFrames: 0, keyFrames: 1, gapFrames: 0, clicks: 2, targetRate: 30, pace: 1 },
   };
 
   const isOurs = (el) => NS.isOurs?.(el) ?? false;
 
+  const timing = { frameWaitMs: 0, frameWaits: 0 };
   function frames(n) {
     const count = Math.max(0, Math.round(n || 0));
     if (count === 0) return Promise.resolve();
     return new Promise((resolve) => {
       let left = count;
+      const started = performance.now();
       /* rAF stops in a background tab; without this a run would wedge */
       const fallback = setTimeout(finish, 60 * left + 120);
-      function finish() { clearTimeout(fallback); resolve(); }
-      function step() { if (--left <= 0) finish(); else requestAnimationFrame(step); }
-      requestAnimationFrame(step);
+      let raf = 0;
+      function finish() { clearTimeout(fallback); cancelAnimationFrame(raf); timing.frameWaitMs += performance.now() - started; timing.frameWaits += count; resolve(); }
+      function step() { if (--left <= 0) finish(); else raf = requestAnimationFrame(step); }
+      raf = requestAnimationFrame(step);
     });
   }
 
@@ -56,7 +56,8 @@
 
   function rememberTarget(x, y) {
     const el = pickTarget(x, y);
-    if (el && el !== document.body && el !== document.documentElement) refTarget = el;
+    if (el?.tagName === 'CANVAS') refTarget = el;
+    else if (el?.closest('.stage[role="application"]')?.querySelector('.artboard-frame')) refTarget=el.closest('.stage');
     return refTarget;
   }
 
@@ -81,8 +82,8 @@
   function onDrawSurface(target, guard) {
     if (!target) return false;
     if (target.tagName === 'CANVAS') return true;
-    if (!guard) return false;
-    return target === guard || guard.contains(target) || target.contains(guard);
+    if (!guard || target === document.body || target === document.documentElement) return false;
+    return target === guard || guard.contains(target);
   }
 
   function keyEvent(type, spec) {
@@ -148,8 +149,8 @@
     fire(target, 'mousemove', x, y, 0);
   }
 
-  async function pressKey(spec, holdFrames) {
-    let target = document.activeElement;
+  async function pressKey(spec, holdFrames, preferredTarget = null) {
+    let target = preferredTarget || document.activeElement;
     if (!target || !target.isConnected || isOurs(target)) {
       target = document.body || document.documentElement;
     }
@@ -168,22 +169,127 @@
     fire(target, 'click', x, y, 0);
   }
 
+  function selectedPalette() {
+    return [...document.querySelectorAll('button[id^="color-"]')]
+      .filter(el => el.getClientRects().length && el.classList.contains('ring-2') &&
+        el.classList.contains('border-primary'));
+  }
+  async function waitFor(check, p, timeout = 650) {
+    const until = performance.now() + timeout;
+    do {
+      if (p.shouldAbort?.()) return false;
+      if (check()) return true;
+      await sleep(2);
+    } while (performance.now() < until);
+    return false;
+  }
+  let pendingSample = null;
+  const verification = {phase:'idle',expected:null,selected:null,attempt:0};
+  async function paintVerified(target, x, y, p) {
+    const fail = reason => { p.failureReason=reason; return 'unverified'; };
+    p.failureReason='';
+    const stage=target.closest('.stage[role="application"]');
+    const alliance=p.nativeKind==='alliance';
+    const scope=stage?.closest('dialog') || document;
+    // Resolve on every check: Wplace expands/rebuilds its palette after picking.
+    const desired = () => alliance ? [...scope.querySelectorAll('button[aria-pressed]')].find(el=>{
+      const rgb=getComputedStyle(el).backgroundColor.match(/[0-9.]+/g)?.slice(0,3).map(Number);
+      return el.getClientRects().length && rgb?.every((v,i)=>v===p.expectedRGBA[i]);
+    }) : document.getElementById('color-' + p.expectedColor);
+    const picking=()=>alliance ? stage?.classList.contains('cursor-copy') : selectedPalette().length===0;
+    const selected=()=>alliance
+      ? [...scope.querySelectorAll('button[aria-pressed="true"]')].filter(el=>el.getClientRects().length&&(el.style.backgroundColor||el.style.backgroundImage||el.classList.contains('ring-2')))
+      : selectedPalette();
+    const correct=()=>{
+      const button=desired();
+      return !!button?.getClientRects().length && (alliance
+        ? !picking() && button.getAttribute('aria-pressed')==='true'
+        : selected().length===1 && selected()[0]===button);
+    };
+    Object.assign(verification,{phase:'prepare',expected:p.expectedColor,selected:null,attempt:0});
+    // A timed-out or interrupted sample remains in flight. No second sample or
+    // paint is allowed until its original completion is observed.
+    if(pendingSample) {
+      verification.phase='pending';
+      if(!await waitFor(pendingSample.complete,p,2000))
+        return p.shouldAbort?.()?'cancelled':fail('native-pending');
+      pendingSample=null;
+      await frames(1); // drain the site's deferred palette focus callback
+    }
+    if(!alliance && ![...document.querySelectorAll('button[id^="color-"]')].some(el=>el.getClientRects().length))
+      return fail('native-picker');
+    for(let attempt=1;attempt<=3;attempt++) {
+      verification.attempt=attempt;
+      verification.phase='arm';
+      if(p.shouldAbort?.()) return 'cancelled';
+      if(pickTarget(x,y)!==target) return 'blocked';
+      await pressKey(KEY_I,0,target);
+      if(!await waitFor(picking,p)) return p.shouldAbort?.()?'cancelled':fail('native-picker');
+      await pressKey(KEY_I,0,target);
+      if(!await waitFor(picking,p)) return p.shouldAbort?.()?'cancelled':fail('native-picker');
+      if(p.shouldAbort?.()) return 'cancelled';
+      if(pickTarget(x,y)!==target) return 'blocked';
+
+      verification.phase='sample';
+      // Completion and correctness are different. A completed wrong-color
+      // sample can be retried; a missing response must never be retried blindly.
+      pendingSample={complete:()=>!picking()&&(alliance||selected().length===1)};
+      await click(target,x,y,0);
+      if(!await waitFor(pendingSample.complete,p,2000))
+        return p.shouldAbort?.()?'cancelled':fail('native-pending');
+      pendingSample=null;
+      await frames(1);
+      if(p.shouldAbort?.()) return 'cancelled';
+      verification.selected=selected()[0]?.id || selected()[0]?.getAttribute('aria-label') || null;
+      if(!correct()) {
+        verification.phase='retry-color';
+        move(target,x,y);
+        await frames(1);
+        continue;
+      }
+      await p.beforePaint?.();
+      const final=await p.recheck?.();
+      if(p.shouldAbort?.()) return 'cancelled';
+      if(final?.kind==='matching') return 'matching';
+      if(final?.kind==='transparent' || final?.kind==='outside') return 'deferred';
+      if(!final?.ok) return fail(final?.reason || 'native-loading');
+      if(final.kind!=='paint' || final.color!==p.expectedColor || !correct()) {
+        verification.phase='retry-color';
+        continue;
+      }
+      if(pickTarget(x,y)!==target) return 'blocked';
+      verification.phase='paint';
+      await click(target,x,y,0);
+      verification.phase='done';
+      return 'ok';
+    }
+    verification.phase='deferred';
+    return 'deferred';
+  }
+
   async function paintCell(x, y, p) {
     const target = pickTarget(x, y);
     if (!target) return 'blocked';
-    if (p.canvasGuard && p.guardTarget && !onDrawSurface(target, p.guardTarget)) return 'blocked';
+    if (p.canvasGuard && !onDrawSurface(target, p.guardTarget)) return 'blocked';
 
+    if (p.shouldAbort?.()) return 'cancelled';
     move(target, x, y);
     await frames(p.moveFrames);
 
+    if (p.shouldAbort?.()) return 'cancelled';
+    if (p.useKey && p.nativeVerify) return paintVerified(target,x,y,p);
     if (p.useKey) {
-      await pressKey(KEY_I, p.holdFrames);
+      await pressKey(KEY_I, p.keyFrames ?? p.holdFrames, target);
       await frames(p.gapFrames);
     }
 
+    if (p.shouldAbort?.()) return 'cancelled';
+    if (pickTarget(x, y) !== target) return 'blocked';
+    await p.beforePaint?.();
     const clicks = Math.max(1, p.clicks | 0);
     for (let i = 0; i < clicks; i++) {
-      if (i > 0) await frames(p.gapFrames);
+      if (i > 0) await frames(p.useKey ? Math.max(2,p.gapFrames) : p.gapFrames);
+      if (p.shouldAbort?.()) return 'cancelled';
       await click(target, x, y, p.holdFrames);
     }
     return 'ok';
@@ -192,10 +298,13 @@
   function profileFrom(cfg) {
     const base = cfg.speed === 'custom' ? cfg.custom : PRESETS[cfg.speed] || PRESETS.fast;
     return {
-      moveFrames: base.moveFrames,
+      moveFrames: cfg.source === 'current' ? (base.currentMoveFrames ?? base.moveFrames) : base.moveFrames,
       holdFrames: base.holdFrames,
+      keyFrames: base.keyFrames ?? base.holdFrames,
       gapFrames: base.gapFrames,
       clicks: base.clicks,
+      targetRate: base.targetRate || 0,
+      nativeVerify: cfg.source !== 'current' && cfg.comparisonMode === 'native',
       pace: base.pace > 0 && base.pace <= 1 ? base.pace : 1,
       useKey: cfg.source !== 'current',
       canvasGuard: !!cfg.canvasGuard,
@@ -208,7 +317,7 @@
   function framesPerCell(p) {
     const clicks = Math.max(1, p.clicks | 0);
     let f = p.moveFrames;
-    if (p.useKey) f += p.holdFrames + p.gapFrames;
+    if (p.useKey) f += (p.keyFrames ?? p.holdFrames) + p.gapFrames;
     f += clicks * p.holdFrames + (clicks - 1) * p.gapFrames;
     return f;
   }
@@ -232,6 +341,9 @@
 
   NS.engine = {
     PRESETS,
+    verification,
+    timing,
+    resetTiming() { timing.frameWaitMs = 0; timing.frameWaits = 0; },
     frames,
     sleep,
     pickTarget,
@@ -247,7 +359,8 @@
     get frameMs() { return frameMs; },
     msPerCell(p) {
       const pace = p.pace > 0 && p.pace <= 1 ? p.pace : 1;
-      return (framesPerCell(p) * frameMs) / pace + (p.delay || 0);
+      return Math.max(p.targetRate ? 1000/p.targetRate : 0,
+        (p.nativeVerify ? 2*frameMs : framesPerCell(p)*frameMs)/pace) + (p.delay || 0);
     },
   };
 })();

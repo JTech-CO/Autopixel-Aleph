@@ -727,6 +727,7 @@ ${seg('selectionOp', ['replace', 'add', 'subtract'])}
       paint: (d.paintMs / Math.max(1, d.painted)).toFixed(1),
       compare: (d.compareMs / Math.max(1, r.state.total)).toFixed(1),
     });
+    if(r.state.error && d.native?.detail) els.diagnostics.textContent += ' · ' + d.native.detail;
     if(r.state.error && d.verification?.expected !== null && d.verification?.expected !== undefined) {
       els.diagnostics.textContent += ' · ' + T('diag_verify', {
         phase: T('verify_'+d.verification.phase),

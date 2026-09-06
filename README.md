@@ -1,5 +1,6 @@
 # AutoPixel-ℵ 2.2.0
 
+This build is **2.2.0 (overlay fix 1)** and supports the updated Wplace module set. Replace the previous ZIP contents, reload the extension, and reload the game tab.
 [한국어](README-KR.md)
 
 Load this folder as an unpacked Chrome extension, disable older copies, and reload the Wplace tab as well as the extension.
@@ -26,4 +27,4 @@ Rectangle, ellipse, freehand, union/subtraction, modal placement, pause/stop and
 
 Tests use browser fixtures reflecting public Wplace source, including delayed sampling and 1,000 alternating-color cells. They do not establish live-game error rates or server acceptance. Comparison uses the game's loaded state; another player's changes may not have arrived yet. Versioned site adapters stop on unsupported structures and may need updating after Wplace changes.
 
-Read CHANGES.md and tests/README.md for evidence and test commands. Pixel data stays in browser memory. The extension does not press Save/Publish. 
+Read CHANGES.md and tests/README.md for evidence and test commands. Pixel data stays in browser memory. The extension does not press Save/Publish. Original input engine credit: https://github.com/JTech-CO/wplace-hover

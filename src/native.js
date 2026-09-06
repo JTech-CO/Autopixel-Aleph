@@ -2,17 +2,19 @@
 (() => {
   const NS = window.__APX;
   let serial = 0, active = null;
+  const diagnostic={reason:null,detail:null};
   function request(op, data = {}, timeout = 1500) {
     const id = 'native-' + (++serial) + '-' + Math.random().toString(36).slice(2);
     return new Promise(resolve => {
       const finish = value => { clearTimeout(timer); document.removeEventListener('apx:native-result', receive); resolve(value); };
-      const receive = e => { try { const v=JSON.parse(e.detail); if(v.id===id) finish(v); } catch {} };
+      const receive = e => { try { const v=JSON.parse(e.detail); if(v.id===id) { if(!v.ok){diagnostic.reason=v.reason;diagnostic.detail=v.detail || null;} finish(v); } } catch {} };
       const timer = setTimeout(() => finish({ok:false,reason:'native-timeout'}), timeout);
       document.addEventListener('apx:native-result', receive);
       document.dispatchEvent(new CustomEvent('apx:native-request',{detail:JSON.stringify({id,op,...data})}));
     });
   }
   async function begin(canvas) {
+    diagnostic.reason=null;diagnostic.detail=null;
     const token = crypto.randomUUID();
     if (!canvas) return {ok:false,reason:'native-canvas'};
     canvas.setAttribute('data-apx-native-id',token);
@@ -37,5 +39,5 @@
     await request('end',{token:s.token},500);
     if(s.canvas.getAttribute('data-apx-native-id')===s.token) s.canvas.removeAttribute('data-apx-native-id');
   }
-  NS.native = {begin,read,end};
+  NS.native = {begin,read,end,diagnostic};
 })();

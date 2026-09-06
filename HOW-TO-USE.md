@@ -1,5 +1,6 @@
 # AutoPixel-ℵ 2.2.0
 
+This build is **2.2.0 (overlay fix 1)** and supports the updated Wplace module set. Replace the previous ZIP contents, reload the extension, and reload the game tab.
 Reload the extension and the Wplace tab, then open the official template.
 Calibrate the grid, select an area, choose Overlay (i) and Official auto, and Start.
 No second PNG or template dimension entry is required.

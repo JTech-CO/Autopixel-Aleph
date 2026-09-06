@@ -1,7 +1,7 @@
 /* Read-only adapter for Wplace's already-loaded build overlay.
    The only temporary setting is the official incorrect-pixel highlight, used
    to obtain its comparison results. No paint API or network write is called.
-   Unknown site builds fail closed; module names are deliberately versioned. */
+   Only observed, verified site builds are imported; unknown builds are diagnosed. */
 (() => {
   'use strict';
   if (window.__apxNativeBridge) return;
@@ -11,7 +11,13 @@
     detail: JSON.stringify({ id, ...value }),
   }));
   const seenModules=new Map();
-  const knownFiles=new Set(['tX2H6UC0.js','C3OwBbQa.js','Dk0Q_kgI.js','D8DZ-h5y.js']);
+  // Keep module sets together: mixing exports from separate site builds is unsafe.
+  const builds = [
+    {id:'wplace-B6mxrfTb',core:'B6mxrfTb.js',prefs:'Db9HDRn2.js',preview:'DKrwebdO.js',renderer:'B6e74eJx.js'},
+    {id:'wplace-tX2H6UC0',core:'tX2H6UC0.js',prefs:'C3OwBbQa.js',preview:'Dk0Q_kgI.js',renderer:'D8DZ-h5y.js'},
+  ];
+  const knownFiles=new Set(builds.flatMap(b=>[b.core,b.prefs,b.preview,b.renderer]));
+  const issue = (reason, detail) => Object.assign(new Error(reason),{detail});
   function rememberResources(entries) {
     for(const e of entries) {
       try {
@@ -21,26 +27,32 @@
       } catch {}
     }
   }
-  function loadedURL(file) {
+  function observedURL(file) {
     rememberResources(performance.getEntriesByType('resource'));
-    if(seenModules.has(file)) return seenModules.get(file);
-    const urls = performance.getEntriesByType('resource').map(e => e.name);
-    const url = urls.find(value => {
-      try { const u = new URL(value); return u.origin === location.origin &&
-        u.pathname === '/_app/immutable/chunks/' + file; } catch { return false; }
-    });
-    if (!url) throw Error('native-unsupported');
+    // Script/modulepreload elements survive an evicted Resource Timing entry.
+    rememberResources([...document.querySelectorAll('script[type="module"][src],link[rel="modulepreload"][href]')]
+      .map(e=>({name:e.src || e.href})));
+    return seenModules.get(file);
+  }
+  function loadedURL(file) {
+    const url=observedURL(file);
+    if(!url) throw issue('native-modules',file);
     return url;
+  }
+  async function loadModule(file) {
+    const url=loadedURL(file);
+    try { return await import(url); }
+    catch { throw issue('native-module-load',file); }
   }
   const allianceSources = new WeakMap();
   let rendererInstalled = false, rendererInstalling = false;
   async function watchAllianceRenderer() {
     if (rendererInstalled || rendererInstalling) return;
-    let url;
-    try { url = loadedURL('D8DZ-h5y.js'); } catch { return; }
+    const build=builds.find(b=>observedURL(b.core));
+    if(!build || !observedURL(build.renderer)) return;
     rendererInstalling = true;
     try {
-      const mod = await import(url), proto = mod.i?.prototype;
+      const mod = await loadModule(build.renderer), proto = mod.i?.prototype;
       if (typeof proto?.render !== 'function') return;
       const original = proto.render;
       proto.render = function(input) {
@@ -50,7 +62,7 @@
         return ok;
       };
       rendererInstalled = true;
-      // Keep observing the four adapter module URLs even if the page's finite
+      // Keep observing the verified adapter module URLs even if the page's finite
       // performance buffer fills with map tile requests.
     } finally { rendererInstalling = false; }
   }
@@ -106,10 +118,13 @@
   }
   async function connect() {
     if (!modules) {
-      // Reuse the site's module instances, never load guessed/new bundle URLs.
-      modules = import(loadedURL('tX2H6UC0.js')).then(core => {
-        if(!core.tt || !core.M?.colors) throw Error('native-unsupported');
-        return {core};
+      const build=builds.find(b=>observedURL(b.core));
+      if(!build) throw issue('native-modules','core');
+      modules = loadModule(build.core).then(core => {
+        if(!core.tt || !Array.isArray(core.M?.colors) ||
+           !core.M.colors.every(p=>Array.isArray(p.rgb)&&p.rgb.length===3))
+          throw issue('native-protocol',build.core);
+        return {core,build};
       }).catch(e => { modules=null; throw e; });
     }
     return modules;
@@ -160,7 +175,7 @@
       if (req.op === 'begin') {
         end();
         const runGeneration=++generation;
-        const {core} = await connect();
+        const {core,build} = await connect();
         if(runGeneration!==generation) throw Error('native-session');
         const chosen=[...document.querySelectorAll('[data-apx-native-id]')].find(e=>e.getAttribute('data-apx-native-id')===req.canvas);
         const stage=chosen?.closest('.stage[role="application"]');
@@ -171,9 +186,12 @@
           reply(req.id,{ok:true,nativeKind:'alliance'});return;
         }
         const [{n:prefs},preview]=await Promise.all([
-          import(loadedURL('C3OwBbQa.js')),import(loadedURL('Dk0Q_kgI.js')),
+          loadModule(build.prefs),loadModule(build.preview),
         ]);
         if(runGeneration!==generation) throw Error('native-session');
+        if(typeof prefs?.setHighlightIncorrectPixels!=='function' ||
+           typeof prefs.highlightIncorrectPixels!=='boolean' || typeof preview.s!=='function')
+          throw issue('native-protocol',build.id);
         const map = core.tt.map, canvas = map?.getCanvas?.();
         if (!canvas || canvas.getAttribute('data-apx-native-id') !== req.canvas)
           throw Error('native-canvas');
@@ -224,7 +242,7 @@
       reply(req.id, { ok: true, kind: status === 1 ? 'matching' : 'paint',
         color, rgba, status, pixel: key });
     } catch (e) {
-      reply(req?.id, { ok: false, reason: /^native-/.test(e.message) ? e.message : 'native-unsupported' });
+      reply(req?.id, { ok: false, reason: /^native-/.test(e.message) ? e.message : 'native-protocol', detail: e.detail || '' });
     }
   });
   addEventListener('pagehide', () => end());

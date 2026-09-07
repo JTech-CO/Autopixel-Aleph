@@ -88,13 +88,13 @@
 
   <section id="en">
     <h1>Privacy Policy</h1>
-    <p class="meta">AutoPixel-ℵ v2.2.0 · Last updated 6 September 2026</p>
+    <p class="meta">AutoPixel-ℵ v2.2.0 · Last updated 7 September 2026</p>
 
     <h2>Overview</h2>
     <p>
       AutoPixel-ℵ is a browser extension that automates pixel placement on
       <code>wplace.live</code> and <code>youplace.live</code>. It collects no personal data, makes
-      no image uploads or pixel-data transmissions to external services. Official adapters reuse site modules already requested by the page. Processing happens inside
+      no image uploads or pixel-data transmissions to external services. Official adapters read cached JavaScript responses from the same site to identify modules already observed on the page, then reuse validated module exports. Processing happens inside
       the tab you have open.
     </p>
 
@@ -119,7 +119,7 @@
         <code>wplace.live</code>, <code>youplace.live</code> and their subdomains.</li>
       <li>No analytics, telemetry, advertising, or crash reporting.</li>
       <li>No data is sold or transferred to third parties — there is no third party.</li>
-      <li>Extension logic ships in the package. The official-site adapter imports known module URLs already requested by Wplace to reuse its in-page state; it does not download replacement extension logic.</li>
+      <li>Extension logic ships in the package. The official-site adapter reads same-origin JavaScript sources already observed on the page to identify their roles, validates the matching exports and reuses in-page state; it does not download replacement extension logic.</li>
     </ul>
 
     <h2>3. How it works</h2>
@@ -148,12 +148,12 @@
 
   <section id="ko" hidden>
     <h1>개인정보 처리방침</h1>
-    <p class="meta">AutoPixel-ℵ v2.2.0 · 최종 수정 2026년 9월 6일</p>
+    <p class="meta">AutoPixel-ℵ v2.2.0 · 최종 수정 2026년 9월 7일</p>
 
     <h2>개요 (Overview)</h2>
     <p>
       AutoPixel-ℵ는 <code>wplace.live</code>와 <code>youplace.live</code>에서 픽셀 찍기를 자동화하는
-      브라우저 확장입니다. 개인정보를 수집하지 않으며, 이미지나 픽셀 정보를 외부 서비스에 전송하지 않습니다. 공식 비교는 페이지가 요청한 사이트 모듈을 재사용합니다. 어떤
+      브라우저 확장입니다. 개인정보를 수집하지 않으며, 이미지나 픽셀 정보를 외부 서비스에 전송하지 않습니다. 공식 비교는 페이지에서 관찰된 동일 출처 JavaScript 응답을 캐시 우선으로 읽어 모듈 역할을 찾고, 검증된 모듈을 재사용합니다. 어떤
       데이터도 외부로 전송하지 않습니다. 모든 동작은 열려 있는 탭 안에서만 일어납니다.
     </p>
 
@@ -178,7 +178,7 @@
         <code>wplace.live</code>, <code>youplace.live</code>와 그 하위 도메인에서만 실행됩니다.</li>
       <li>분석·텔레메트리·광고·오류 보고를 하지 않습니다.</li>
       <li>데이터를 판매하거나 제3자에게 제공하지 않습니다. 제3자 자체가 없습니다.</li>
-      <li>확장 자체 로직은 패키지에 포함됩니다. 공식 비교 어댑터는 Wplace 페이지가 요청한 알려진 모듈 URL을 import하여 페이지 내 상태를 재사용합니다. 외부에서 확장 대체 코드를 내려받지는 않습니다.</li>
+      <li>확장 자체 로직은 패키지에 포함됩니다. 공식 비교 어댑터는 페이지에서 관찰된 동일 출처 JavaScript 소스를 읽어 역할을 찾고 실제 인터페이스를 검증한 뒤 페이지 내 상태를 재사용합니다. 외부에서 확장 대체 코드를 내려받지는 않습니다.</li>
     </ul>
 
     <h2>3. 동작 방식 (How It Works)</h2>

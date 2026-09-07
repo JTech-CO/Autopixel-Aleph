@@ -298,7 +298,7 @@
 
   function diagnostics() {
     return {
-      version: '2.2.0', build: 'overlay-fix-1', native: {...NS.native?.diagnostic}, elapsedMs: elapsedMs(), painted: state.done, matched: state.matching,
+      version: '2.2.0', build: 'overlay-fix-2', native: {...NS.native?.diagnostic}, elapsedMs: elapsedMs(), painted: state.done, matched: state.matching,
       unverified: state.unverified, deferred: state.deferred, verification: {...NS.engine.verification}, transparent: state.transparent, blocked: state.blocked, comparison: state.comparisonReason,
       compareMs: state.compareMs, paintMs: state.paintMs,
       frameMs: NS.engine.timing.frameWaits ? NS.engine.timing.frameWaitMs / NS.engine.timing.frameWaits : 0,

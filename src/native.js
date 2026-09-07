@@ -2,24 +2,24 @@
 (() => {
   const NS = window.__APX;
   let serial = 0, active = null;
-  const diagnostic={reason:null,detail:null};
+  const diagnostic={reason:null,detail:null,discovery:null};
   function request(op, data = {}, timeout = 1500) {
     const id = 'native-' + (++serial) + '-' + Math.random().toString(36).slice(2);
     return new Promise(resolve => {
       const finish = value => { clearTimeout(timer); document.removeEventListener('apx:native-result', receive); resolve(value); };
-      const receive = e => { try { const v=JSON.parse(e.detail); if(v.id===id) { if(!v.ok){diagnostic.reason=v.reason;diagnostic.detail=v.detail || null;} finish(v); } } catch {} };
+      const receive = e => { try { const v=JSON.parse(e.detail); if(v.id===id) { if(v.discovery) diagnostic.discovery=v.discovery; if(!v.ok){diagnostic.reason=v.reason;diagnostic.detail=v.detail || null;} finish(v); } } catch {} };
       const timer = setTimeout(() => finish({ok:false,reason:'native-timeout'}), timeout);
       document.addEventListener('apx:native-result', receive);
       document.dispatchEvent(new CustomEvent('apx:native-request',{detail:JSON.stringify({id,op,...data})}));
     });
   }
   async function begin(canvas) {
-    diagnostic.reason=null;diagnostic.detail=null;
+    diagnostic.reason=null;diagnostic.detail=null;diagnostic.discovery=null;
     const token = crypto.randomUUID();
     if (!canvas) return {ok:false,reason:'native-canvas'};
     canvas.setAttribute('data-apx-native-id',token);
     active = {token,canvas};
-    return request('begin',{token,canvas:token});
+    return request('begin',{token,canvas:token},7000);
   }
   async function read(cell, shouldAbort) {
     const s = active; if (!s) return {ok:false,reason:'native-session'};

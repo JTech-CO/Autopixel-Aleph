@@ -1,6 +1,6 @@
 # AutoPixel-ℵ 2.2.0
 
-This build is **2.2.0 (overlay fix 1)** and supports the updated Wplace module set. Replace the previous ZIP contents, reload the extension, and reload the game tab.
+This build is **2.2.0 (overlay fix 2)** and discovers official module roles without a fixed filename list. The first connection may take a few seconds. Replace the previous ZIP contents, reload the extension, and reload the game tab.
 [한국어](README-KR.md)
 
 Load this folder as an unpacked Chrome extension, disable older copies, and reload the Wplace tab as well as the extension.

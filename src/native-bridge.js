@@ -1,7 +1,7 @@
 /* Read-only adapter for Wplace's already-loaded build overlay.
    The only temporary setting is the official incorrect-pixel highlight, used
    to obtain its comparison results. No paint API or network write is called.
-   Only observed, verified site builds are imported; unknown builds are diagnosed. */
+   Observed same-origin modules are classified by source and validated by exports. */
 (() => {
   'use strict';
   if (window.__apxNativeBridge) return;
@@ -10,67 +10,137 @@
   const reply = (id, value) => document.dispatchEvent(new CustomEvent('apx:native-result', {
     detail: JSON.stringify({ id, ...value }),
   }));
-  const seenModules=new Map();
-  // Keep module sets together: mixing exports from separate site builds is unsafe.
-  const builds = [
-    {id:'wplace-B6mxrfTb',core:'B6mxrfTb.js',prefs:'Db9HDRn2.js',preview:'DKrwebdO.js',renderer:'B6e74eJx.js'},
-    {id:'wplace-tX2H6UC0',core:'tX2H6UC0.js',prefs:'C3OwBbQa.js',preview:'Dk0Q_kgI.js',renderer:'D8DZ-h5y.js'},
-  ];
-  const knownFiles=new Set(builds.flatMap(b=>[b.core,b.prefs,b.preview,b.renderer]));
   const issue = (reason, detail) => Object.assign(new Error(reason),{detail});
-  function rememberResources(entries) {
-    for(const e of entries) {
-      try {
-        const u=new URL(e.name),file=u.pathname.split('/').pop();
-        if(u.origin===location.origin && knownFiles.has(file) &&
-           u.pathname==='/_app/immutable/chunks/'+file) seenModules.set(file,u.href);
-      } catch {}
-    }
+  const resources=new Map(), candidates={core:[],prefs:[],preview:[],renderer:[]};
+  const imports=new Map(), queue=[], allianceSources=new WeakMap(), hookedRenderers=new WeakSet();
+  const discovery={phase:'observing',observed:0,checked:0,failed:0,roles:{}};
+  let workers=0;
+  function moduleURL(value) {
+    try {
+      const u=new URL(value,location.href);
+      return u.origin===location.origin &&
+        /^\/_app\/immutable\/chunks\/[A-Za-z0-9_.-]+\.js$/.test(u.pathname) ? u.href : null;
+    } catch { return null; }
   }
-  function observedURL(file) {
+  function classify(source) {
+    // Semantic anchors select a module to inspect; exports are validated separately.
+    if (/get\s+map\s*\(\s*\)/.test(source) && /set\s+map\s*\(/.test(source) &&
+        /(?:\.colors\b|colors\s*:)/.test(source)) return 'core';
+    if (/\bsetHighlightIncorrectPixels\s*\(\s*[\w$]+\s*\)\s*\{/.test(source) && source.includes('highlightIncorrectPixels'))
+      return 'prefs';
+    if (source.includes('Pending paint preview listener failed.') &&
+        /\.add\s*\(/.test(source) && /\.delete\s*\(/.test(source)) return 'preview';
+    if (source.includes('status_marker_color') && source.includes('this.canvas') &&
+        /\brender\s*\(/.test(source)) return 'renderer';
+    return null;
+  }
+  function rememberResources(entries) {
+    for(const entry of entries) {
+      const url=moduleURL(entry.name);
+      if(!url || resources.has(url) || resources.size>=256) continue;
+      const record={url,state:'queued',attempts:0};
+      resources.set(url,record);queue.push(record);
+    }
+    discovery.observed=resources.size;
+    pump();
+  }
+  function refreshResources() {
     rememberResources(performance.getEntriesByType('resource'));
-    // Script/modulepreload elements survive an evicted Resource Timing entry.
     rememberResources([...document.querySelectorAll('script[type="module"][src],link[rel="modulepreload"][href]')]
       .map(e=>({name:e.src || e.href})));
-    return seenModules.get(file);
   }
-  function loadedURL(file) {
-    const url=observedURL(file);
-    if(!url) throw issue('native-modules',file);
-    return url;
-  }
-  async function loadModule(file) {
-    const url=loadedURL(file);
-    try { return await import(url); }
-    catch { throw issue('native-module-load',file); }
-  }
-  const allianceSources = new WeakMap();
-  let rendererInstalled = false, rendererInstalling = false;
-  async function watchAllianceRenderer() {
-    if (rendererInstalled || rendererInstalling) return;
-    const build=builds.find(b=>observedURL(b.core));
-    if(!build || !observedURL(build.renderer)) return;
-    rendererInstalling = true;
+  async function inspect(record) {
+    record.state='reading';record.attempts++;
+    const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),2500);
     try {
-      const mod = await loadModule(build.renderer), proto = mod.i?.prototype;
-      if (typeof proto?.render !== 'function') return;
-      const original = proto.render;
-      proto.render = function(input) {
-        const ok = original.call(this,input);
-        const parent = this.canvas?.closest('.alliance-template-overlay');
-        if (parent && ok && input?.source?.data) allianceSources.set(parent,input.source);
+      const response=await fetch(record.url,{cache:'force-cache',credentials:'same-origin',
+        redirect:'error',signal:controller.signal});
+      if(!response.ok || !/(?:javascript|ecmascript)/i.test(response.headers.get('content-type')||''))
+        throw Error('source');
+      if(Number(response.headers.get('content-length'))>1500000) {record.state='ignored';return;}
+      const source=await response.text();
+      if(source.length>1500000) {record.state='ignored';return;}
+      const role=classify(source);
+      if(role) {record.role=role;candidates[role].push(record);if(role==='renderer') watchAllianceRenderer().catch(()=>{});}
+      record.state='checked';discovery.checked++;
+    } catch {record.state='failed';discovery.failed++;}
+    finally {clearTimeout(timer);}
+  }
+  function pump() {
+    while(workers<4 && queue.length) {
+      const record=queue.shift();workers++;
+      inspect(record).finally(()=>{workers--;pump();});
+    }
+  }
+  function loadModule(record) {
+    if(!imports.has(record.url)) {
+      imports.set(record.url,import(record.url).catch(()=>{
+        imports.delete(record.url);
+        throw issue('native-module-load',record.url.split('/').pop());
+      }));
+    }
+    return imports.get(record.url);
+  }
+  const values = mod => [...new Set(Object.values(mod))].filter(v=>v && (typeof v==='object'||typeof v==='function'));
+  function normalize(role,mod) {
+    const all=values(mod),one=matches=>matches.length===1?matches[0]:null;
+    if(role==='core') {
+      const M=one(all.filter(v=>Array.isArray(v.colors) && v.colors.length>1 &&
+        v.colors.every(p=>Array.isArray(p.rgb)&&p.rgb.length===3&&p.rgb.every(n=>Number.isInteger(n)&&n>=0&&n<=255))));
+      const tt=one(all.filter(v=>typeof v==='object' && 'map' in v &&
+        (!v.map || (typeof v.map.getCanvas==='function' && typeof v.map.getLayer==='function' &&
+          typeof v.map.unproject==='function'))));
+      return M&&tt?{M,tt}:null;
+    }
+    if(role==='prefs') return one(all.filter(v=>typeof v.setHighlightIncorrectPixels==='function' &&
+      typeof v.highlightIncorrectPixels==='boolean'));
+    if(role==='preview') {
+      const subscribe=one(all.filter(v=>typeof v==='function' &&
+        /\.add\s*\(/.test(Function.prototype.toString.call(v)) &&
+        /\.delete\s*\(/.test(Function.prototype.toString.call(v))));
+      return subscribe?{s:subscribe}:null;
+    }
+    if(role==='renderer') return one(all.filter(v=>typeof v==='function' && typeof v.prototype?.render==='function'));
+    return null;
+  }
+  async function resolveRole(role,deadline) {
+    discovery.phase='finding-'+role;
+    while(performance.now()<deadline) {
+      refreshResources();
+      if(candidates[role].length>1)
+        throw issue('native-protocol','ambiguous '+role);
+      const record=candidates[role][0];
+      if(record) {
+        const value=normalize(role,await loadModule(record));
+        if(!value) throw issue('native-protocol',role+': '+record.url.split('/').pop());
+        discovery.roles[role]=record.url.split('/').pop();
+        return value;
+      }
+      await new Promise(r=>setTimeout(r,25));
+    }
+    throw issue(discovery.failed?'native-module-load':'native-modules',
+      role+' / '+discovery.checked+'/'+discovery.observed+' modules');
+  }
+  async function watchAllianceRenderer() {
+    for(const record of candidates.renderer) {
+      const Renderer=normalize('renderer',await loadModule(record));
+      if(!Renderer) continue;
+      const proto=Renderer.prototype;
+      if(hookedRenderers.has(proto)) continue;
+      const original=proto.render;
+      proto.render=function(input) {
+        const ok=original.call(this,input);
+        const parent=this.canvas?.closest('.alliance-template-overlay');
+        if(parent && ok && input?.source?.data) allianceSources.set(parent,input.source);
         return ok;
       };
-      rendererInstalled = true;
-      // Keep observing the verified adapter module URLs even if the page's finite
-      // performance buffer fills with map tile requests.
-    } finally { rendererInstalling = false; }
+      hookedRenderers.add(proto);
+      discovery.roles.renderer=record.url.split('/').pop();
+    }
   }
-  // Observe only this high-level site renderer, not WebGL or animation APIs.
-  // Retain references in a WeakMap; no full-image copies or per-frame readback.
-  const observer = new PerformanceObserver(list => { rememberResources(list.getEntries()); watchAllianceRenderer().catch(()=>{}); });
+  const observer=new PerformanceObserver(list=>rememberResources(list.getEntries()));
   observer.observe({type:'resource',buffered:true});
-  watchAllianceRenderer().catch(()=>{});
+  refreshResources();
   function allianceRead(s,req) {
     const stage=s.canvas, art=stage.querySelector('.artboard-frame');
     if(!stage.isConnected || !art) throw Error('native-canvas');
@@ -116,17 +186,9 @@
     const matching=actual[3]>0&&rgba.slice(0,3).every((v,i)=>v===actual[i]);
     return {ok:true,kind:matching?'matching':'paint',color,rgba,nativeKind:'alliance'};
   }
-  async function connect() {
-    if (!modules) {
-      const build=builds.find(b=>observedURL(b.core));
-      if(!build) throw issue('native-modules','core');
-      modules = loadModule(build.core).then(core => {
-        if(!core.tt || !Array.isArray(core.M?.colors) ||
-           !core.M.colors.every(p=>Array.isArray(p.rgb)&&p.rgb.length===3))
-          throw issue('native-protocol',build.core);
-        return {core,build};
-      }).catch(e => { modules=null; throw e; });
-    }
+  async function connect(deadline) {
+    if(!modules) modules=resolveRole('core',deadline).then(core=>({core}))
+      .catch(e=>{modules=null;throw e;});
     return modules;
   }
   function layerOf(map) {
@@ -175,23 +237,29 @@
       if (req.op === 'begin') {
         end();
         const runGeneration=++generation;
-        const {core,build} = await connect();
+        const deadline=performance.now()+5500;
+        for(const record of resources.values()) if(record.state==='failed') {
+          record.state='queued';queue.push(record);
+        }
+        pump();
+        const {core} = await connect(deadline);
         if(runGeneration!==generation) throw Error('native-session');
         const chosen=[...document.querySelectorAll('[data-apx-native-id]')].find(e=>e.getAttribute('data-apx-native-id')===req.canvas);
         const stage=chosen?.closest('.stage[role="application"]');
         if(stage?.querySelector('.artboard-frame')) {
+          await resolveRole('renderer',deadline);
           await watchAllianceRenderer();
           if(runGeneration!==generation) throw Error('native-session');
           session={token:req.token,core,canvas:stage,kind:'alliance'};
-          reply(req.id,{ok:true,nativeKind:'alliance'});return;
+          discovery.phase='ready';reply(req.id,{ok:true,nativeKind:'alliance',discovery});return;
         }
-        const [{n:prefs},preview]=await Promise.all([
-          loadModule(build.prefs),loadModule(build.preview),
+        const [prefs,preview]=await Promise.all([
+          resolveRole('prefs',deadline),resolveRole('preview',deadline),
         ]);
         if(runGeneration!==generation) throw Error('native-session');
         if(typeof prefs?.setHighlightIncorrectPixels!=='function' ||
            typeof prefs.highlightIncorrectPixels!=='boolean' || typeof preview.s!=='function')
-          throw issue('native-protocol',build.id);
+          throw issue('native-protocol','prefs/preview');
         const map = core.tt.map, canvas = map?.getCanvas?.();
         if (!canvas || canvas.getAttribute('data-apx-native-id') !== req.canvas)
           throw Error('native-canvas');
@@ -203,7 +271,7 @@
         });
         s.changedHighlight = !prefs.highlightIncorrectPixels;
         if (s.changedHighlight) prefs.setHighlightIncorrectPixels(true);
-        reply(req.id, { ok: true }); return;
+        discovery.phase='ready';reply(req.id, { ok: true, discovery }); return;
       }
       const s = session;
       if (!s || req.token !== s.token) throw Error('native-session');
@@ -242,7 +310,7 @@
       reply(req.id, { ok: true, kind: status === 1 ? 'matching' : 'paint',
         color, rgba, status, pixel: key });
     } catch (e) {
-      reply(req?.id, { ok: false, reason: /^native-/.test(e.message) ? e.message : 'native-protocol', detail: e.detail || '' });
+      reply(req?.id, { ok: false, reason: /^native-/.test(e.message) ? e.message : 'native-protocol', detail: e.detail || '', discovery });
     }
   });
   addEventListener('pagehide', () => end());

@@ -45,6 +45,7 @@
     onStart() {
       ui.render();
       lastTick = 0;
+      if(store.cfg.comparisonMode==='native' && store.cfg.source==='overlay') ui.setStatus('compare_native-discovering',null,'go');
       ui.setPhase('busy');
       ui.setProgress(0);
       ui.updateStartButton();

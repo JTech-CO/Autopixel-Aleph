@@ -1,10 +1,15 @@
-# AutoPixel-ℵ 2.2.0
+# Quick start
 
-This build is **2.2.0 (overlay fix 2)** and discovers official module roles without a fixed filename list. The first connection may take a few seconds. Replace the previous ZIP contents, reload the extension, and reload the game tab.
-Reload the extension and the Wplace tab, then open the official template.
-Calibrate the grid, select an area, choose Overlay (i) and Official auto, and Start.
-No second PNG or template dimension entry is required.
-Safe/Fast/Turbo ceilings are 10/20/30 px/s; waiting for color confirmation takes priority.
-If an Alliance source was opened before observation began, close and reopen it once.
-After an interrupted sample, restarting waits for the original response before sampling again. Completed wrong-color responses are retried up to three times; persistent mismatches remain unpainted while later cells continue. Reload only if the original response never completes.
-See [README.md](README.md) for details and optional manual compatibility modes.
+1. Reload the extension and the Wplace tab.
+2. Open the official template in build view.
+3. Calibrate the grid and select a rectangle, ellipse or freehand area.
+4. Choose **Overlay (i)** and **Official auto**.
+5. Select Safe, Fast or Turbo, then press **Start**.
+
+Speed ceilings are 10/20/30 px/s. The first connection may take a few seconds.
+No extra PNG or template dimensions are needed. Transparent cells are skipped; matching colors are skipped when enabled.
+
+If an Alliance template cannot be read, close and reopen it. Cells that fail color confirmation remain unpainted.
+Use **Stop** to end a run.
+
+[Installation and features](README.md)

@@ -45,7 +45,7 @@
     onStart() {
       ui.render();
       lastTick = 0;
-      if(store.cfg.comparisonMode==='native' && store.cfg.source==='overlay') ui.setStatus('compare_native-discovering',null,'go');
+      if(store.cfg.comparisonMode==='native') ui.setStatus('compare_native-discovering',null,'go');
       ui.setPhase('busy');
       ui.setProgress(0);
       ui.updateStartButton();
@@ -94,7 +94,7 @@
 
       /* every cell rejected means the guard is wrong about this site, not that
          the area is bad, so say that instead of burying it in a count */
-      if (state.total && state.blocked === state.total && !state.deferred && store.cfg.canvasGuard) {
+      if (state.total && state.blocked === state.total && !state.deferred && !state.filtered && !state.outside && store.cfg.canvasGuard) {
         ui.setStatus('st_guard_all', null, 'warn');
         return;
       }
@@ -103,10 +103,10 @@
       const finished = handled >= state.total;
       const done = state.done;
       const total = state.total;
-      const blocked = state.blocked-state.deferred;
+      const blocked = state.blocked-state.deferred-state.filtered-state.outside;
       const elapsed = runner.elapsedMs();
       const offscreen = offscreenInRun;
-      const clean = finished && !state.blocked && !offscreen;
+      const clean = finished && state.blocked===state.filtered+state.outside && !offscreen;
 
       ui.setStatusRaw(() => {
         let text = finished
@@ -114,6 +114,8 @@
           : i18n.t('st_stopped', { done, total });
         const notes = [];
         if (state.matching) notes.push(i18n.t('st_matching', { n: state.matching }));
+        if (state.outside) notes.push(i18n.t('st_outside',{n:state.outside}));
+        if (state.filtered) notes.push(i18n.t('st_filtered',{n:state.filtered}));
         if (state.deferred) notes.push(i18n.t('st_deferred', {n:state.deferred}));
         if (state.transparent) notes.push(i18n.t('st_transparent', { n: state.transparent }));
         if (!['ready', 'disabled', 'native-ready'].includes(state.comparisonReason)) notes.push(i18n.t('compare_' + state.comparisonReason));

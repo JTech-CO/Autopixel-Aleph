@@ -6,6 +6,7 @@
 
   const TX = {
     "diag_verify": {en:"Check {phase}: target {expected}, selected {selected}, attempt {attempt}",ko:"확인 {phase}: 목표 {expected}, 결과 {selected}, {attempt}회"},
+    "verify_current": {en:"current color",ko:"현재색"},
     "verify_prepare": {en:"prepare",ko:"준비"},
     "verify_pending": {en:"previous response",ko:"이전 응답"},
     "verify_arm": {en:"picker",ko:"피커"},
@@ -26,7 +27,11 @@
     "tip_native_auto": { en: "Keep the official build overlay visible. No PNG or size input. Two i presses arm the picker; paint follows only after the sampled color is confirmed. The official incorrect-pixel highlight is enabled during a run and restored afterward.", ko: "공식 도안의 빌드 화면을 열어 두세요. PNG·크기 입력 없이 읽습니다. i 두 번 후 색 추출이 확인되어야 칠합니다. 실행 중 공식 오색 표시를 켜고 종료 시 복원합니다." },
     "compare_native-discovering": { en: "Connecting the official template. The first connection may take a few seconds.", ko: "공식 도안을 연결하고 있습니다. 첫 연결에는 몇 초 걸릴 수 있습니다." },
     "compare_native-ready": { en: "Official overlay: auto-read at Start", ko: "공식 도안: 시작 시 자동 비교" },
-    "compare_native-current": { en: "Current color: official overlay checks inactive", ko: "현재색: 공식 도안 비교 미적용" },
+    "compare_native-current": { en: "Official overlay: only the selected color", ko: "공식 도안: 선택한 현재색만 칠하기" },
+    "compare_native-current-color": { en: "Select a paint color before starting Current color mode.", ko: "현재색 모드를 시작하기 전에 게임에서 칠할 색을 선택하세요." },
+    "compare_native-current-changed": { en: "Stopped: the selected color changed or the picker is active. Select your color and restart.", ko: "중단: 선택한 색이 바뀌었거나 피커가 켜졌습니다. 색을 선택하고 다시 시작하세요." },
+    "st_outside": { en: "{n} cells outside the template skipped", ko: "도안 밖 {n}칸 건너뜀" },
+    "st_filtered": { en: "{n} cells of other colors skipped", ko: "다른 색 {n}칸 건너뜀" },
     "compare_native-modules": { en: "Stopped: a required official module was not found. Open the official template build view and retry.", ko: "중단: 필요한 공식 모듈을 찾지 못했습니다. 공식 도안의 빌드 화면을 열고 다시 시작하세요." },
     "compare_native-module-load": { en: "Stopped: official site module failed to load. Reload the game tab and reopen the official template.", ko: "중단: 공식 사이트 모듈을 불러오지 못했습니다. 게임 탭을 새로고침하고 공식 도안을 다시 여세요." },
     "compare_native-protocol": { en: "Stopped: official site data structure has changed. The adapter needs an update.", ko: "중단: 공식 사이트의 데이터 구조가 달라 연결할 수 없습니다. 호환성 수정이 필요합니다." },
@@ -114,6 +119,7 @@
     lbl_speed:       { en: 'Speed',                     ko: '속도' },
     sp_safe:         { en: 'Safe 10',                      ko: '안전 10' },
     sp_fast:         { en: 'Fast 20',                      ko: '빠름 20' },
+    sp_turbo_overlay: { en: 'Turbo 25', ko: '터보 25' },
     sp_turbo:        { en: 'Turbo 30',                     ko: '터보 30' },
     sp_custom:       { en: 'Custom',                    ko: '직접' },
     lbl_source:      { en: 'Color',                     ko: '색상' },

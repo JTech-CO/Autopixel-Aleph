@@ -170,18 +170,30 @@
   }
 
   function selectedPalette() {
-    return [...document.querySelectorAll('button[id^="color-"]')]
-      .filter(el => el.getClientRects().length && el.classList.contains('ring-2') &&
-        el.classList.contains('border-primary'));
+    return [...document.querySelectorAll('button[id^="color-"].ring-2.border-primary')]
+      .filter(el=>el.getClientRects().length);
   }
   async function waitFor(check, p, timeout = 650) {
-    const until = performance.now() + timeout;
-    do {
-      if (p.shouldAbort?.()) return false;
-      if (check()) return true;
-      await sleep(2);
-    } while (performance.now() < until);
-    return false;
+    if(p.shouldAbort?.()) return false;
+    if(check()) return true;
+    // Palette completion is a DOM transition. Observe it directly rather than
+    // waiting for the next timer tick, while polling only for Stop/Pause.
+    return new Promise(resolve=>{
+      let finished=false;
+      const finish=value=>{
+        if(finished) return;
+        finished=true;observer.disconnect();clearTimeout(deadline);clearInterval(abortPoll);resolve(value);
+      };
+      const evaluate=()=>{
+        if(p.shouldAbort?.()) finish(false);
+        else if(check()) finish(true);
+      };
+      const observer=new MutationObserver(evaluate);
+      observer.observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:['class','aria-pressed']});
+      const deadline=setTimeout(()=>finish(false),timeout);
+      const abortPoll=setInterval(evaluate,16);
+      evaluate();
+    });
   }
   let pendingSample = null;
   const verification = {phase:'idle',expected:null,selected:null,attempt:0};
@@ -204,7 +216,7 @@
       const button=desired();
       return !!button?.getClientRects().length && (alliance
         ? !picking() && button.getAttribute('aria-pressed')==='true'
-        : selected().length===1 && selected()[0]===button);
+        : (()=>{const active=selected();return active.length===1 && active[0]===button;})());
     };
     Object.assign(verification,{phase:'prepare',expected:p.expectedColor,selected:null,attempt:0});
     // A timed-out or interrupted sample remains in flight. No second sample or
@@ -218,6 +230,21 @@
     }
     if(!alliance && ![...document.querySelectorAll('button[id^="color-"]')].some(el=>el.getClientRects().length))
       return fail('native-picker');
+    if(!p.useKey) {
+      verification.phase='current';
+      if(!correct()) return fail('native-current-changed');
+      await p.beforePaint?.();
+      const final=await p.recheck?.();
+      if(p.shouldAbort?.()) return 'cancelled';
+      if(final?.kind==='matching') return 'matching';
+      if(!final?.ok) return fail(final?.reason || 'native-loading');
+      if(final.kind!=='paint' || final.color!==p.expectedColor) return 'deferred';
+      if(!correct()) return fail('native-current-changed');
+      if(pickTarget(x,y)!==target) return 'blocked';
+      await click(target,x,y,0);
+      verification.phase='done';
+      return 'ok';
+    }
     for(let attempt=1;attempt<=3;attempt++) {
       verification.attempt=attempt;
       verification.phase='arm';
@@ -233,12 +260,14 @@
       verification.phase='sample';
       // Completion and correctness are different. A completed wrong-color
       // sample can be retried; a missing response must never be retried blindly.
-      pendingSample={complete:()=>!picking()&&(alliance||selected().length===1)};
+      pendingSample={complete:()=>alliance?!picking():selected().length===1};
       await click(target,x,y,0);
       if(!await waitFor(pendingSample.complete,p,2000))
         return p.shouldAbort?.()?'cancelled':fail('native-pending');
       pendingSample=null;
-      await frames(1);
+      // The next cell's move frame drains deferred palette focus. The sampled
+      // color and native pixel state are still checked immediately before paint.
+      await frames(p.sampleSettleFrames ?? 1);
       if(p.shouldAbort?.()) return 'cancelled';
       verification.selected=selected()[0]?.id || selected()[0]?.getAttribute('aria-label') || null;
       if(!correct()) {
@@ -277,7 +306,7 @@
     await frames(p.moveFrames);
 
     if (p.shouldAbort?.()) return 'cancelled';
-    if (p.useKey && p.nativeVerify) return paintVerified(target,x,y,p);
+    if (p.nativeVerify) return paintVerified(target,x,y,p);
     if (p.useKey) {
       await pressKey(KEY_I, p.keyFrames ?? p.holdFrames, target);
       await frames(p.gapFrames);
@@ -303,8 +332,9 @@
       keyFrames: base.keyFrames ?? base.holdFrames,
       gapFrames: base.gapFrames,
       clicks: base.clicks,
-      targetRate: base.targetRate || 0,
-      nativeVerify: cfg.source !== 'current' && cfg.comparisonMode === 'native',
+      targetRate: cfg.speed==='turbo' && cfg.comparisonMode==='native' && cfg.source!=='current' ? 25 : base.targetRate || 0,
+      sampleSettleFrames: cfg.speed==='turbo' ? 0 : 1,
+      nativeVerify: cfg.comparisonMode === 'native',
       pace: base.pace > 0 && base.pace <= 1 ? base.pace : 1,
       useKey: cfg.source !== 'current',
       canvasGuard: !!cfg.canvasGuard,
@@ -360,7 +390,7 @@
     msPerCell(p) {
       const pace = p.pace > 0 && p.pace <= 1 ? p.pace : 1;
       return Math.max(p.targetRate ? 1000/p.targetRate : 0,
-        (p.nativeVerify ? 2*frameMs : framesPerCell(p)*frameMs)/pace) + (p.delay || 0);
+        (p.nativeVerify ? (p.moveFrames+(p.useKey?(p.sampleSettleFrames??1):0))*frameMs : framesPerCell(p)*frameMs)/pace) + (p.delay || 0);
     },
   };
 })();

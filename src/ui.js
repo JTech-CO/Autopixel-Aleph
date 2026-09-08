@@ -411,7 +411,7 @@ ${seg('selectionOp', ['replace', 'add', 'subtract'])}
     }
     for (const [group, map] of Object.entries(SEG_LABELS)) {
       for (const btn of els[group].querySelectorAll('button')) {
-        btn.textContent = T(map[btn.dataset.v]);
+        btn.textContent = T(group==='speed' && btn.dataset.v==='turbo' && NS.store.cfg.comparisonMode==='native' && NS.store.cfg.source==='overlay' ? 'sp_turbo_overlay' : map[btn.dataset.v]);
         btn.title = btn.textContent;
       }
     }
@@ -452,6 +452,9 @@ ${seg('selectionOp', ['replace', 'add', 'subtract'])}
   function render() {
     const cfg = NS.store.cfg;
     const g = NS.grid;
+    const turbo=els.speed.querySelector('[data-v="turbo"]');
+    turbo.textContent=T(cfg.comparisonMode==='native' && cfg.source==='overlay'?'sp_turbo_overlay':'sp_turbo');
+    turbo.title=turbo.textContent;
 
     els.panel.classList.toggle('folded', cfg.folded);
     els.gapCells.value = String(cfg.gapCells);

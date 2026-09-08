@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "AutoPixel-ℵ",
   "version": "2.2.0",
-  "description": "Select rectangles, ellipses or freehand areas, compare template pixels, and paint Wplace or Youplace.",
+  "description": "Select areas and paint Wplace with official template comparison and verified colors.",
   "icons": {
     "16": "icons/logo16.png",
     "32": "icons/logo32.png",
@@ -25,9 +25,7 @@
     {
       "matches": [
         "https://wplace.live/*",
-        "https://*.wplace.live/*",
-        "https://youplace.live/*",
-        "https://*.youplace.live/*"
+        "https://*.wplace.live/*"
       ],
       "js": [
         "src/canvas-bridge.js",
@@ -39,9 +37,7 @@
     {
       "matches": [
         "https://wplace.live/*",
-        "https://*.wplace.live/*",
-        "https://youplace.live/*",
-        "https://*.youplace.live/*"
+        "https://*.wplace.live/*"
       ],
       "js": [
         "src/i18n.js",
@@ -60,5 +56,5 @@
       "run_at": "document_idle"
     }
   ],
-  "version_name": "2.2.0 (overlay fix 2)"
+  "version_name": "2.2.0 (Wplace update 1)"
 }

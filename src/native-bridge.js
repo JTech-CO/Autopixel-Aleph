@@ -220,6 +220,26 @@
     const y = Math.floor((point[1]-a[1]) / height * d.pixels.height + 1e-7);
     return { x, y, point, topLeft: a };
   }
+  function currentSelection(core,stage) {
+    let color;
+    if(stage) {
+      if(stage.classList.contains('cursor-copy')) throw Error('native-current-color');
+      const scope=stage.closest('dialog') || stage;
+      const buttons=[...scope.querySelectorAll('button[aria-pressed="true"]')].filter(el=>
+        el.getClientRects().length && (el.style.backgroundColor||el.style.backgroundImage||el.classList.contains('ring-2')));
+      if(buttons.length!==1) throw Error('native-current-color');
+      const rgb=getComputedStyle(buttons[0]).backgroundColor.match(/[0-9.]+/g)?.slice(0,3).map(Number);
+      color=core.M.colors.findIndex((p,i)=>i>0&&rgb?.length===3&&p.rgb.every((v,k)=>v===rgb[k]));
+    } else {
+      const buttons=[...document.querySelectorAll('button[id^="color-"]')].filter(el=>
+        el.getClientRects().length && el.classList.contains('ring-2') && el.classList.contains('border-primary'));
+      if(buttons.length!==1 || !/^color-\d+$/.test(buttons[0].id)) throw Error('native-current-color');
+      color=Number(buttons[0].id.slice(6));
+    }
+    const rgb=core.M.colors[color]?.rgb;
+    if(!Number.isInteger(color)||color<=0||!rgb) throw Error('native-current-color');
+    return {color,rgba:[...rgb,255]};
+  }
   function end(token) {
     if (!session || (token && session.token !== token)) return;
     const s = session; session = null;
@@ -250,8 +270,9 @@
           await resolveRole('renderer',deadline);
           await watchAllianceRenderer();
           if(runGeneration!==generation) throw Error('native-session');
+          const selection=req.currentOnly?currentSelection(core,stage):null;
           session={token:req.token,core,canvas:stage,kind:'alliance'};
-          discovery.phase='ready';reply(req.id,{ok:true,nativeKind:'alliance',discovery});return;
+          discovery.phase='ready';reply(req.id,{ok:true,nativeKind:'alliance',selection,discovery});return;
         }
         const [prefs,preview]=await Promise.all([
           resolveRole('prefs',deadline),resolveRole('preview',deadline),
@@ -265,13 +286,14 @@
           throw Error('native-canvas');
         const s = { token: req.token, core, prefs, map, canvas, pending: new Map() };
         visible(s);
+        const selection=req.currentOnly?currentSelection(core,null):null;
         session = s;
         s.off = preview.s(values => {
           s.pending = new Map(values.map(v => [v.tile.join(',') + ':' + v.pixel.join(','), v.colorIdx]));
         });
         s.changedHighlight = !prefs.highlightIncorrectPixels;
         if (s.changedHighlight) prefs.setHighlightIncorrectPixels(true);
-        discovery.phase='ready';reply(req.id, { ok: true, discovery }); return;
+        discovery.phase='ready';reply(req.id, { ok: true, selection, discovery }); return;
       }
       const s = session;
       if (!s || req.token !== s.token) throw Error('native-session');

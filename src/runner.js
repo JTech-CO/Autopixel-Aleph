@@ -19,6 +19,8 @@
     paintMs: 0,
     unverified: 0,
     deferred: 0,
+    filtered: 0,
+    outside: 0,
     error: null,
     total: 0,
     startedAt: 0,
@@ -128,6 +130,9 @@
      achieved ratio below target; a deadline lets the next wait absorb the slop. */
   function waitAfterCell(profile, cellStart) {
     const jitterMs = jitteredDelay(profile.delay, profile.jitter);
+    // Native paint clicks are rate-limited by beforePaint. Prepare the next
+    // cell during that interval instead of adding a second per-cell wait.
+    if(profile.nativeVerify && profile.targetRate>0) return jitterMs;
     if (profile.targetRate > 0) return Math.max(0, cellStart + 1000/profile.targetRate - performance.now()) + jitterMs;
     const pace = profile.pace;
     if (!(pace > 0) || pace >= 1 || cellMsAvg <= 0) return jitterMs;
@@ -156,6 +161,8 @@
     paintMs: 0,
       unverified: 0,
     deferred: 0,
+    filtered: 0,
+    outside: 0,
     error: null,
       total: cells.length,
       startedAt: performance.now(),
@@ -168,6 +175,8 @@
     paceDeadline = 0;
     profile.guardTarget = profile.canvasGuard ? NS.engine.resolveGuardTarget() : null;
     const native = !!profile.nativeVerify;
+    const currentOnly=native && !profile.useKey;
+    let selection=null;
     const comparison = opts.skipMatching && !native ? NS.matching.begin() : null;
     state.comparisonReason = native ? 'native-ready' : opts.skipMatching ? NS.matching.status() : 'disabled';
     NS.engine.resetTiming();
@@ -176,7 +185,11 @@
     profile.beforePaint = async () => {
       if(!profile.targetRate || !lastPaintAt) return;
       while(!profile.shouldAbort()) {
-        const left=lastPaintAt+1000/profile.targetRate-performance.now();
+        const period=1000/profile.targetRate;
+        const due=native && profile.useKey && profile.targetRate===25
+          ? Math.max(paceDeadline || lastPaintAt+period,lastPaintAt+1000/30)
+          : lastPaintAt+period;
+        const left=due-performance.now();
         if(left<=0) return;
         await NS.engine.sleep(Math.min(20,left));
       }
@@ -186,8 +199,10 @@
 
     try {
       if (native) {
-        const ready = await NS.native.begin(NS.engine.resolveGuardTarget());
+        const ready = await NS.native.begin(NS.engine.resolveGuardTarget(),currentOnly);
         if (!ready.ok) { state.error = ready.reason; state.comparisonReason = ready.reason; return; }
+        selection=ready.selection;
+        if(currentOnly && !selection) {state.error='native-current-color';return;}
       }
       for (let i = 0; i < cells.length; i++) {
         if (state.stopRequested) break;
@@ -207,6 +222,12 @@
           if (profile.shouldAbort()) { if(state.stopRequested) break; i--; continue; }
           state.error = observed.reason; state.comparisonReason = observed.reason; state.unverified++; break;
         }
+        if(currentOnly && Number.isInteger(observed.color) && observed.color!==selection.color) {
+          state.filtered++;state.blocked++;
+          hooks.onProgress?.(state,cell);
+          if(i%128===0) await NS.engine.sleep(1);
+          continue;
+        }
         const comparisonResult = native ? (observed.kind === 'matching' && !opts.skipMatching ? 'paint' : observed.kind)
           : comparison ? await NS.matching.check(cell, comparison) : 'unknown';
         if (native) {
@@ -223,6 +244,7 @@
         if (state.paused) { i--; continue; }
         state.comparisonUnavailable ||= !!comparison?.unavailable;
         if (comparisonResult === 'outside') {
+          state.outside++;
           state.blocked++;
           hooks.onProgress?.(state, cell);
           if (i % 128 === 0) await NS.engine.sleep(1);
@@ -270,6 +292,12 @@
           const cellMs = performance.now() - cellStart;
           cellMsAvg = cellMsAvg > 0 ? cellMsAvg * 0.75 + cellMs * 0.25 : cellMs;
           lastPaintAt=performance.now();
+          if(native && profile.useKey && profile.targetRate===25) {
+            const period=1000/profile.targetRate;
+            // Follow a 25px/s schedule without accumulating a backlog. Small
+            // timer overshoots can recover, but no clicks are closer than 1/30s.
+            paceDeadline=paceDeadline && lastPaintAt-paceDeadline<period ? paceDeadline+period : lastPaintAt+period;
+          }
           state.done++;
           NS.overlay.markCell(cell.c, cell.r);
         } else {
@@ -298,8 +326,8 @@
 
   function diagnostics() {
     return {
-      version: '2.2.0', build: 'overlay-fix-2', native: {...NS.native?.diagnostic}, elapsedMs: elapsedMs(), painted: state.done, matched: state.matching,
-      unverified: state.unverified, deferred: state.deferred, verification: {...NS.engine.verification}, transparent: state.transparent, blocked: state.blocked, comparison: state.comparisonReason,
+      version: '2.2.0', build: 'wplace-update-1', native: {...NS.native?.diagnostic}, elapsedMs: elapsedMs(), painted: state.done, matched: state.matching,
+      unverified: state.unverified, deferred: state.deferred, filtered: state.filtered, outside: state.outside, verification: {...NS.engine.verification}, transparent: state.transparent, blocked: state.blocked, comparison: state.comparisonReason,
       compareMs: state.compareMs, paintMs: state.paintMs,
       frameMs: NS.engine.timing.frameWaits ? NS.engine.timing.frameWaitMs / NS.engine.timing.frameWaits : 0,
     };

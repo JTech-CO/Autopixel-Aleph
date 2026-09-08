@@ -13,13 +13,13 @@
       document.dispatchEvent(new CustomEvent('apx:native-request',{detail:JSON.stringify({id,op,...data})}));
     });
   }
-  async function begin(canvas) {
+  async function begin(canvas, currentOnly=false) {
     diagnostic.reason=null;diagnostic.detail=null;diagnostic.discovery=null;
     const token = crypto.randomUUID();
     if (!canvas) return {ok:false,reason:'native-canvas'};
     canvas.setAttribute('data-apx-native-id',token);
     active = {token,canvas};
-    return request('begin',{token,canvas:token},7000);
+    return request('begin',{token,canvas:token,currentOnly},7000);
   }
   async function read(cell, shouldAbort) {
     const s = active; if (!s) return {ok:false,reason:'native-session'};

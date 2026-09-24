@@ -1,0 +1,299 @@
+[
+  {
+    "name": "variable fill is opt-in, persists, and is only offered for native Overlay"
+  },
+  {
+    "name": "variable fill disabled still samples every solid cell"
+  },
+  {
+    "name": "variable fill samples only at color boundaries and keeps both colors"
+  },
+  {
+    "name": "variable fill solid area respects safe ceiling",
+    "painted": 60,
+    "samples": 1,
+    "reused": 59,
+    "wrong": 0,
+    "rate": 9.806528821236567,
+    "cap": 10
+  },
+  {
+    "name": "variable fill solid area respects fast ceiling",
+    "painted": 60,
+    "samples": 1,
+    "reused": 59,
+    "wrong": 0,
+    "rate": 19.27348752121474,
+    "cap": 20
+  },
+  {
+    "name": "variable fill solid area respects turbo ceiling",
+    "painted": 60,
+    "samples": 1,
+    "reused": 59,
+    "wrong": 0,
+    "rate": 28.036494962855393,
+    "cap": 30
+  },
+  {
+    "name": "variable fill alternating colors keeps normal two-key sampling and turbo ceiling",
+    "rate": 24.98398462524023
+  },
+  {
+    "name": "variable fill skips completed, transparent and outside cells"
+  },
+  {
+    "name": "variable fill setting does not change Current color filtering"
+  },
+  {
+    "name": "variable fill changed palette during pacing is re-sampled before paint"
+  },
+  {
+    "name": "variable fill rechecks completed pixels immediately before a reused click"
+  },
+  {
+    "name": "variable fill template replacement cancels reuse and revisits the area"
+  },
+  {
+    "name": "variable fill pause and resume requires fresh sampling"
+  },
+  {
+    "name": "variable fill Stop during reuse sends no next paint"
+  },
+  {
+    "name": "variable fill late response after Stop cannot be reused by the next run"
+  },
+  {
+    "name": "variable fill quick pause and resume during delayed sampling discards the old proof"
+  },
+  {
+    "name": "variable fill comparison failure during reuse stops before painting"
+  },
+  {
+    "name": "variable fill 1000 mixed cells with delayed responses preserve every color",
+    "painted": 1000,
+    "samples": 100,
+    "reused": 900,
+    "wrong": 0,
+    "rate": 26.25223143967237
+  },
+  {
+    "name": "variable fill wrong sample still retries before any color reuse"
+  },
+  {
+    "name": "live overlay overlay revisits skipped cells after buffer replacement",
+    "painted": 6,
+    "wrong": 0,
+    "restarts": 1
+  },
+  {
+    "name": "live overlay overlay revisits skipped cells after layer replacement",
+    "painted": 6,
+    "wrong": 0,
+    "restarts": 1
+  },
+  {
+    "name": "live overlay overlay revisits skipped cells after in-place replacement",
+    "painted": 6,
+    "wrong": 0,
+    "restarts": 1
+  },
+  {
+    "name": "live overlay current revisits skipped cells after buffer replacement",
+    "painted": 6,
+    "wrong": 0,
+    "restarts": 1
+  },
+  {
+    "name": "live overlay current revisits skipped cells after layer replacement",
+    "painted": 6,
+    "wrong": 0,
+    "restarts": 1
+  },
+  {
+    "name": "live overlay current revisits skipped cells after in-place replacement",
+    "painted": 6,
+    "wrong": 0,
+    "restarts": 1
+  },
+  {
+    "name": "live overlay late picker result from replaced template never paints the old color"
+  },
+  {
+    "name": "live overlay change during the last paint is inspected before completion"
+  },
+  {
+    "name": "live overlay waits for fresh progress with identical dimensions and origin"
+  },
+  {
+    "name": "live overlay temporary layer replacement keeps the run alive"
+  },
+  {
+    "name": "live overlay final audit covers more than one batch of visited cells"
+  },
+  {
+    "name": "live overlay ordinary progress updates do not restart or repeat paint"
+  },
+  {
+    "name": "live overlay next Start reads a new template without reloading or recalibrating"
+  },
+  {
+    "name": "live overlay Stop during audit remains responsive"
+  },
+  {
+    "name": "current site module names initialize and paint correctly"
+  },
+  {
+    "name": "evicted resource timing entries recover from official module script elements"
+  },
+  {
+    "name": "renamed module files and export aliases are discovered without a registry"
+  },
+  {
+    "name": "unrecognized source stops before any clicks and reports the missing role"
+  },
+  {
+    "name": "unrelated observed modules are inspected but never imported"
+  },
+  {
+    "name": "known filename with incompatible exports is rejected before painting"
+  },
+  {
+    "name": "slow initial source discovery is awaited before sampling"
+  },
+  {
+    "name": "temporary source read failure can recover on the next Start"
+  },
+  {
+    "name": "Stop during initial discovery sends no sample or paint clicks"
+  },
+  {
+    "name": "current color skips matching, transparent and other-color cells at safe"
+  },
+  {
+    "name": "current color skips matching, transparent and other-color cells at fast"
+  },
+  {
+    "name": "current color skips matching, transparent and other-color cells at turbo"
+  },
+  {
+    "name": "current color single clicks obey safe ceiling",
+    "rate": 9.82788599652982,
+    "cap": 10
+  },
+  {
+    "name": "current color single clicks obey fast ceiling",
+    "rate": 19.343319115138552,
+    "cap": 20
+  },
+  {
+    "name": "current color single clicks obey turbo ceiling",
+    "rate": 28.10810810810811,
+    "cap": 30
+  },
+  {
+    "name": "current color stops if selection changes before the next paint"
+  },
+  {
+    "name": "current color rechecks the board after movement before painting"
+  },
+  {
+    "name": "current color requires a selected paint color"
+  },
+  {
+    "name": "current color filtered-only area is not a canvas guard error"
+  },
+  {
+    "name": "empty space outside the template completes without a guard error"
+  },
+  {
+    "name": "turbo label follows the selected color source"
+  },
+  {
+    "name": "turbo handles frame-delayed hover and palette focus at the 25px target",
+    "painted": 120,
+    "wrong": 0,
+    "rate": 24.996324069974058
+  },
+  {
+    "name": "1000 cells: delayed sampler never paints previous color; two i presses per sample",
+    "painted": 1000,
+    "wrong": 0,
+    "rate": 17.225193568112722
+  },
+  {
+    "name": "transparent/outside/correct skip without PNG; repeated run skips all correct cells"
+  },
+  {
+    "name": "safe ceiling and same-color acknowledgement",
+    "rate": 9.797517962130934,
+    "cap": 10,
+    "minInterval": 100.19999998807907
+  },
+  {
+    "name": "fast ceiling and same-color acknowledgement",
+    "rate": 19.169329073482427,
+    "cap": 20,
+    "minInterval": 50.19999998807907
+  },
+  {
+    "name": "turbo ceiling and same-color acknowledgement",
+    "rate": 24.988787082671575,
+    "cap": 25,
+    "minInterval": 34.79999999701977
+  },
+  {
+    "name": "drop stops without an unverified paint or later cells"
+  },
+  {
+    "name": "wrongSample retries are bounded; bad cells remain unpainted while later cells continue"
+  },
+  {
+    "name": "Stop during asynchronous sampling never sends the paint click"
+  },
+  {
+    "name": "stale progress and mismatched canvas fail closed; user highlight choice retained"
+  },
+  {
+    "name": "Alliance modal overlay: dragged official template, original transparency, actual board and picker completion"
+  },
+  {
+    "name": "Alliance modal current: dragged official template, original transparency, actual board and picker completion"
+  },
+  {
+    "name": "variable fill Alliance modal variable: dragged official template, original transparency, actual board and picker completion"
+  },
+  {
+    "name": "live overlay replacement in Alliance modal overlay: dragged official template, original transparency, actual board and picker completion"
+  },
+  {
+    "name": "live overlay replacement in Alliance modal current: dragged official template, original transparency, actual board and picker completion"
+  },
+  {
+    "name": "variable fill live overlay replacement in Alliance modal variable: dragged official template, original transparency, actual board and picker completion"
+  },
+  {
+    "name": "late response after Stop is drained before a restarted run samples again"
+  },
+  {
+    "name": "native bridge responds across a real isolated extension world"
+  },
+  {
+    "name": "current engine handles palette created only after sampling"
+  },
+  {
+    "name": "palette DOM replacement after every sample stays valid"
+  },
+  {
+    "name": "one stale color response recovers automatically at the same cell"
+  },
+  {
+    "name": "slow sample beyond old 650ms limit completes without restart"
+  },
+  {
+    "name": "closed paint palette is diagnosed before any canvas click"
+  },
+  {
+    "name": "persistent bad cell does not stop following correct cells; UI reports it as unpainted"
+  }
+]

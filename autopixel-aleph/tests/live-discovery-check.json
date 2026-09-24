@@ -1,0 +1,22 @@
+{
+  "date": "2026-09-07",
+  "scope": "Public site module connection; no login, user template or paint actions",
+  "result": {
+    "id": "discovery-live",
+    "ok": false,
+    "reason": "native-overlay",
+    "detail": "",
+    "discovery": {
+      "phase": "finding-preview",
+      "observed": 127,
+      "checked": 127,
+      "failed": 0,
+      "roles": {
+        "renderer": "B6e74eJx.js",
+        "core": "BF0ksztN.js",
+        "prefs": "BMwQ_mME.js",
+        "preview": "UM7epaZb.js"
+      }
+    }
+  }
+}

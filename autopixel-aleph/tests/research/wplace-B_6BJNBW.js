@@ -1,0 +1,1 @@
+import{tn as e}from"./CX37corp.js";e();

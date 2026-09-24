@@ -1,0 +1,1 @@
+import{t as e}from"./B_9kDHn5.js";var t=/\{([A-Za-z_$][\w$]*)\}/g,n=new Map,r=new Proxy(Object.create(null),{get(e,t){if(typeof t!=`string`)return;let r=n.get(t);return r||(r=(e={})=>i(t,e),n.set(t,r)),r}});function i(n,r){let i=e()[n];if(typeof i!=`string`)throw Error(`Unknown message "${n}"`);return i.replace(t,(e,t)=>String(r[t]))}export{r as t};

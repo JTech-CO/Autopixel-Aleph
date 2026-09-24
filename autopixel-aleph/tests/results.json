@@ -1,0 +1,25 @@
+{
+  "passed": [
+    "boot + shadow controls + language",
+    "native modal: visible panel remains interactive",
+    "Alliance canvas receives color key and clicks while modal is open",
+    "nested modal and removal recover host",
+    "ellipse, concave lasso, union, subtraction, persistence and ordering",
+    "freehand UI closes near starting point; pointer cancel preserves selection",
+    "guard never clicks real button or body without a canvas",
+    "exact color + transparent skip; wrong color paints; second run skips newly painted cell",
+    "stop during move frame prevents subsequent click",
+    "incremental overlay matches full redraw and clears current cell",
+    "WebGL render-time sample works without preserveDrawingBuffer",
+    "unrendered WebGL black buffer is unknown, not a false match",
+    "comparison also works across MAIN and isolated extension worlds",
+    "bridge leaves no permanent GL or animation wrappers",
+    "transparent PNG works without a board in both color modes",
+    "full PNG can align to a smaller subregion without silent disabling",
+    "native composited overlay compares the underlying captured board, with zero per-cell reads",
+    "native WebGL snapshot is read once and its temporary hooks are removed",
+    "folded panel keeps Start visible with comparison status and timings",
+    "30 fps regression: preset ceilings hold in the compatibility path"
+  ],
+  "browserErrors": []
+}

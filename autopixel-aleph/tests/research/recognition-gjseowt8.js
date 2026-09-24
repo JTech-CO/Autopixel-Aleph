@@ -1,0 +1,14 @@
+import{At as e,B as t,D as n,E as r,J as i,Jt as a,Ot as o,U as s,V as c,X as l,Y as u,_t as d,a as f,qt as p,r as m,st as h,tn as g,wt as _}from"./DhUcoEdH.js";import"./B8UK1oE5.js";var v=l(`<div class="confetti svelte-9l4h7e"></div>`),y=l(`<div></div>`);function b(l,b){a(b,!0);let x=f(b,`size`,3,10),S=f(b,`x`,19,()=>[-.5,.5]),C=f(b,`y`,19,()=>[.25,1]),w=f(b,`duration`,3,2e3),T=f(b,`infinite`,3,!1),E=f(b,`delay`,19,()=>[0,50]),D=f(b,`colorRange`,19,()=>[0,360]),O=f(b,`colorArray`,19,()=>[]),k=f(b,`amount`,3,50),A=f(b,`iterationCount`,3,1),j=f(b,`fallDistance`,3,`100px`),M=f(b,`rounded`,3,!1),N=f(b,`cone`,3,!1),P=f(b,`noGravity`,3,!1),F=f(b,`xSpread`,3,.15),I=f(b,`destroyOnComplete`,3,!0),L=f(b,`disableForReducedMotion`,3,!1),R=e(!1);m(()=>{!I()||T()||typeof A()==`string`||setTimeout(()=>o(R,!0),(w()+E()[1])*A())});function z(e,t){return Math.random()*(t-e)+e}function B(){return O().length?O()[Math.round(Math.random()*(O().length-1))]:`hsl(${Math.round(z(D()[0],D()[1]))}, 75%, 50%)`}var V=u(),H=_(V),U=e=>{var a=y();let o;t(a,21,()=>({length:k()}),c,(e,t)=>{var n=v();d((e,t,i,a,o,s,c,l,u,d,f)=>r(n,`
+        --color: ${e??``};
+        --skew: ${t??``}deg,${i??``}deg;
+        --rotation-xyz: ${a??``}, ${o??``}, ${s??``};
+        --rotation-deg: ${c??``}deg;
+        --translate-y-multiplier: ${l??``};
+        --translate-x-multiplier: ${u??``};
+        --scale: ${d??``};
+        --transition-delay: ${f??``}ms;
+        --transition-duration: ${T()?`calc(${w()}ms * var(--scale))`:`${w()}ms`};`),[()=>B(),()=>z(-45,45),()=>z(-45,45),()=>z(-10,10),()=>z(-10,10),()=>z(-10,10),()=>z(0,360),()=>z(C()[0],C()[1]),()=>z(S()[0],S()[1]),()=>.1*z(2,10),()=>z(E()[0],E()[1])]),i(e,n)}),g(a),d(()=>{o=n(a,1,`confetti-holder svelte-9l4h7e`,null,o,{rounded:M(),cone:N(),"no-gravity":P(),"reduced-motion":L()}),r(a,`
+    --fall-distance: ${j()??``};
+    --size: ${x()??``}px;
+    --x-spread: ${1-F()};
+    --transition-iteration-count: ${(T()?`infinite`:A())??``};`)}),i(e,a)};s(H,e=>{h(R)||e(U)}),i(l,V),p()}var x=b;export{b as n,x as t};

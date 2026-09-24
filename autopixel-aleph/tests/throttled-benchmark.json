@@ -1,0 +1,18 @@
+{
+  "v220_overlay": {
+    "source": "overlay",
+    "done": 12,
+    "wrong": 0,
+    "clicks": 24,
+    "ms": 2197.5,
+    "rate": 5.460750853242321
+  },
+  "v220_current": {
+    "source": "current",
+    "done": 12,
+    "wrong": 0,
+    "clicks": 24,
+    "ms": 511.19999998807907,
+    "rate": 23.474178404303274
+  }
+}

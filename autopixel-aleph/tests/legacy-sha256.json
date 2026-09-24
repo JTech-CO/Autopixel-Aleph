@@ -1,0 +1,23 @@
+{
+  "HOW-TO-USE.md": "5cff015079061fcb8340d6dbbb6166f37306924a7cef4f36a3e1a5cac0ce81ab",
+  "README-KR.md": "a5c73078b92ffb77ff66f343a58bf9228d2ea190164e363c95855e9f749aad57",
+  "README.md": "b246bddac4c8fd4d30d0651f0b84fcb18e0ffd1d1f96f85090f2c6349e60917d",
+  "icons/logo128.png": "39ee410b4a313cf503e329a7d2b447496eaf88ded95ab816aa109f385aef12a7",
+  "icons/logo16.png": "5cd92302321829e197e7d121bcd5996e77757a1bc42eacae0b45dd8848c927bc",
+  "icons/logo32.png": "f7441e73973fccac3647e9c77406130138bcdb8ef4fee9df0e76cc85b4c351eb",
+  "icons/logo48.png": "546af2eeddaf8c54eda2090dcd2363df5641f649d86fca8d2d635ccd498f2109",
+  "image.png": "62e393e1ea97f59a0210f1e9e2fc522e23f3d0e594015b7074dfcbcbe86251b1",
+  "manifest.json": "230abc44918bb5ed0add50f7bb1e990bed4159ebc7b66c548a5bc6ca22dd8493",
+  "privacy-policy.html": "b3cd91f05800bb3704b3f8ec558484f97bdc273733530cc8b4a0d1831d0a5e45",
+  "src/engine.js": "ebfc6255503149382440f9f499d018bf492f4a278a82d300f3d0bf1dd3b5d2e3",
+  "src/grid.js": "b0de9c32c74e885551f234aa63bd6594d2b447f9bab3ea18b92751a8497a45a2",
+  "src/i18n.js": "21e70cdae235033930c194293074fbe2eec6e8f40176767b7b8821890dfa984d",
+  "src/main.js": "ea4fa54fccb1710dc8973c7a1959daa851cb97718e884449683a514a94b1b984",
+  "src/overlay.js": "65f1c17c6682443c74dbbfaec0e7ef0e99cee4e577c93b1a7734911176f3f871",
+  "src/pick.js": "e554d4b0a74bd5dc2531e469c8654b3f04fa2e79f250caad05bb1adab21577ae",
+  "src/runner.js": "426ec1b7a6a1f707d0cfdddc3abc04805467b82fa053dc22ccb819a5e7bb9cb5",
+  "src/shell.js": "604bca4bfa604a74ca1d0193e86791d135ededa3f4c2aa76952bcd6116dbd30e",
+  "src/store.js": "8e656fdabf8d5d7a934a0d17e75c9bcb96ac6f1975f5be193ce168abcbac1263",
+  "src/ui.js": "3a4a06a6338cd622536f7932cf92f3b5baea72d8bb5ecbe83ae466bed9df2bc5",
+  "사용법.md": "f84288074d63c71585e2b10a1113747c34e01917b4701737f254573e4869a01b"
+}

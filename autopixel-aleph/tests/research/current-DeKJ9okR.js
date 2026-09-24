@@ -1,0 +1,1 @@
+import{$ as e,X as t,o as n,y as r}from"./CX37corp.js";import"./B8UK1oE5.js";var i=new Set([`$$slots`,`$$events`,`$$legacy`]),a=e(`<svg><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"></path></svg>`);function o(e,o){let s=n(o,i);var c=a();r(c,()=>({xmlns:`http://www.w3.org/2000/svg`,viewBox:`0 -960 960 960`,fill:`currentColor`,...s})),t(e,c)}export{o as t};

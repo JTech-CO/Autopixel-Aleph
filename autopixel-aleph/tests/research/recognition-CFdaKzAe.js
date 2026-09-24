@@ -1,0 +1,1 @@
+import{At as e,Et as t,Ot as n,st as r,vt as i}from"./DhUcoEdH.js";function a(a){let o=e(t(a()));return i(()=>{if(a()){n(o,!0);return}let e=setTimeout(()=>n(o,!1),300);return()=>clearTimeout(e)}),{get current(){return r(o)}}}export{a as t};

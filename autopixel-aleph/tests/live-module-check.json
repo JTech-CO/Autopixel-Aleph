@@ -1,0 +1,19 @@
+{
+  "environment": "Public Wplace page, no login/template or paint actions",
+  "shape": {
+    "paletteColors": 64,
+    "paletteShape": true,
+    "mapCanvas": "CANVAS",
+    "prefs": "function",
+    "highlight": "boolean",
+    "preview": "function",
+    "renderer": "function"
+  },
+  "response": {
+    "id": "read-only-probe",
+    "ok": false,
+    "reason": "native-overlay",
+    "detail": ""
+  },
+  "meaning": "All current modules connected; stopped at missing user template as expected"
+}

@@ -1,0 +1,1 @@
+function e(e){return e.replace(/(\P{M})(\p{M}+)/gu,(e,t,n)=>{if(/[\uFE0E\uFE0F\u20E3]/.test(n))return e;let r=t.normalize(`NFKC`);return r===t||!/^\p{L}$/u.test(r)?e:(r+n).normalize(`NFC`)})}export{e as t};

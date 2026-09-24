@@ -1,0 +1,1 @@
+import{n as e}from"./B_9kDHn5.js";function t(){return e()}function n(e){switch(e){case`ch`:return`zh-CN`;case`jp`:return`ja-JP`;case`pt`:return`pt-BR`;case`uk`:return`uk-UA`;default:return e||`en`}}function r(){return`/terms/return${t()===`pt`?`/pt`:``}`}export{t as n,r,n as t};

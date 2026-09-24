@@ -1,0 +1,18 @@
+{
+  "snapshot": {
+    "ms": 5236.20000000298,
+    "done": 80,
+    "clicks": 160,
+    "clearedArea": 1409216,
+    "error": null,
+    "build": "2.2.0 (Wplace update 1)"
+  },
+  "updated": {
+    "ms": 5203.600000008941,
+    "done": 80,
+    "clicks": 160,
+    "clearedArea": 1409216,
+    "error": null,
+    "build": "2.2.0 (Variable fill 1)"
+  }
+}

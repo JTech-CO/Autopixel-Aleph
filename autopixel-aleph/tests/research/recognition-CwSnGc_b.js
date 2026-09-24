@@ -1,0 +1,1 @@
+function e([e,t],[n,r]){e=Math.floor(e),t=Math.floor(t),n=Math.floor(n),r=Math.floor(r);let i=[],a=Math.abs(n-e),o=Math.abs(r-t),s=e<n?1:-1,c=t<r?1:-1,l=a-o,u=e,d=t;for(;i.push([u,d]),u!==n||d!==r;){let e=2*l;e>-o&&(l-=o,u+=s),e<a&&(l+=a,d+=c)}return i}export{e as t};

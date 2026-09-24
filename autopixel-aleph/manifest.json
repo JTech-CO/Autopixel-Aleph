@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "AutoPixel-ℵ",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "description": "Select areas and paint Wplace with official template comparison and verified colors.",
   "icons": {
     "16": "icons/logo16.png",
@@ -56,5 +56,5 @@
       "run_at": "document_idle"
     }
   ],
-  "version_name": "2.2.0 (Variable fill 1)"
+  "version_name": "2.2.1 (Variable fill 1)"
 }

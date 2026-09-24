@@ -1,7 +1,7 @@
 # AutoPixel-ℵ
 
 Chrome extension exclusively for painting selected areas on Wplace.
-Current build: **2.2.0 (Variable fill 1)**.
+Current build: **2.2.1 (Variable fill 1)**.
 
 [한국어](README-KR.md) | [Quick start](HOW-TO-USE.md) | [Changes](CHANGES.md)
 

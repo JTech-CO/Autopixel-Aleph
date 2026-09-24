@@ -1,7 +1,7 @@
 # AutoPixel-ℵ
 
 Wplace 전용 자동 칠하기 Chrome 확장입니다.
-현재 버전: **2.2.0 (Variable fill 1)**.
+현재 버전: **2.2.1 (Variable fill 1)**.
 
 [English](README.md) | [빠른 사용법](사용법.md) | [변경 사항](CHANGES.md)
 

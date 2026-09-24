@@ -398,7 +398,7 @@
 
   function diagnostics() {
     return {
-      version: '2.2.0', build: 'variable-fill-1', native: {...NS.native?.diagnostic}, elapsedMs: elapsedMs(), painted: state.paintedTotal, passPainted: state.done, overlayRestarts: state.restarts, matched: state.matching,
+      version: '2.2.1', build: 'variable-fill-1', native: {...NS.native?.diagnostic}, elapsedMs: elapsedMs(), painted: state.paintedTotal, passPainted: state.done, overlayRestarts: state.restarts, matched: state.matching,
       unverified: state.unverified, deferred: state.deferred, filtered: state.filtered, outside: state.outside, verification: {...NS.engine.verification}, transparent: state.transparent, blocked: state.blocked, comparison: state.comparisonReason,
       compareMs: state.compareMs, paintMs: state.paintMs,
       frameMs: NS.engine.timing.frameWaits ? NS.engine.timing.frameWaitMs / NS.engine.timing.frameWaits : 0,

@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AutoPixel-ℵ — Privacy Policy</title>
+<title>AutoPixel-ℵ | Privacy Policy</title>
+<link rel="canonical" href="https://jtech-co.github.io/Autopixel-Aleph/autopixel-aleph/privacy-policy.html">
 <style>
   :root {
     --bg: #101113;
@@ -69,6 +70,7 @@
     background: #1e2024; border: 1px solid var(--line); border-radius: 4px;
   }
   a { color: var(--accent); }
+  p, li, code { overflow-wrap: anywhere; }
   footer { margin-top: 36px; padding-top: 18px; border-top: 1px solid var(--line); color: var(--faint); font-size: 13px; }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
@@ -86,120 +88,72 @@
     </div>
   </div>
 
-  <section id="en">
+  <section id="en" lang="en">
     <h1>Privacy Policy</h1>
-    <p class="meta">AutoPixel-ℵ v2.2.0 · Last updated 8 September 2026</p>
+    <p class="meta">AutoPixel-ℵ 2.2.0 (Variable fill 1) · Last updated 25 September 2026</p>
 
     <h2>Overview</h2>
-    <p>
-      AutoPixel-ℵ is a browser extension that automates pixel placement on
-      <code>wplace.live</code>. It collects no personal data, makes
-      no image uploads or pixel-data transmissions to external services. Official adapters read cached JavaScript responses from the same site to identify modules already observed on the page, then reuse validated module exports. Processing happens inside
-      the tab you have open.
-    </p>
+    <p>AutoPixel-ℵ automates pixel placement on Wplace. The extension processes images and settings in your browser and does not send them to the developer. It includes no analytics, advertising, telemetry or automatic error reporting.</p>
 
-    <h2>1. Data we process</h2>
-    <p>The extension stores exactly one record in <code>chrome.storage.local</code>, on your device:</p>
+    <h2>1. Settings stored on your device</h2>
+    <p>The extension uses <code>chrome.storage.local</code> to remember:</p>
     <ul>
-      <li>Interface state — language, panel position, collapsed/expanded.</li>
-      <li>Calibration — measured cell size in pixels and the reference point you clicked.</li>
-      <li>Selected area — the selected grid-cell indices, shape and add/subtract mode.</li>
-      <li>Run settings — speed preset, colour source, fill order, delay, jitter, limit, guard toggles.</li>
+      <li>Language, panel position and size, and collapsed state.</li>
+      <li>Cell calibration, reference point, selected cells, selection shape and add/subtract mode.</li>
+      <li>Speed, colour source, variable fill, comparison and skip options, fill order, timing, limits and guards.</li>
     </ul>
-    <p>
-      None of this identifies you. It never leaves the browser profile, and removing the extension
-      removes it.
-    </p>
+    <p>These settings are stored in your browser profile, without Chrome sync or an extension-operated upload. They remain after closing the tab or disabling the extension. Removing the extension clears its local settings, as described in the <a href="https://developer.chrome.com/docs/extensions/reference/api/storage">Chrome storage documentation</a>.</p>
 
-    <h2>2. Comprehensive disclosure</h2>
-    <ul>
-      <li>No personally identifiable information is collected.</li>
-      <li>No health, financial, authentication, personal-communication, or location data is collected.</li>
-      <li>No browsing history or activity on other sites is read. The content script only runs on
-        <code>wplace.live</code> and its subdomains.</li>
-      <li>No analytics, telemetry, advertising, or crash reporting.</li>
-      <li>No data is sold or transferred to third parties — there is no third party.</li>
-      <li>Extension logic ships in the package. The official-site adapter reads same-origin JavaScript sources already observed on the page to identify their roles, validates the matching exports and reuses in-page state; it does not download replacement extension logic.</li>
-    </ul>
+    <h2>2. Images and canvas data</h2>
+    <p>Official template comparison reads template pixels, screen and game-map coordinates, palette state, and loaded map or Alliance canvas data. Live overlay detection and variable fill use this data to update the selected area and reuse verified colours. Game-map coordinates are not your device's geographic location.</p>
+    <p>Optional manual comparison reads an image you select and a canvas sample. Images, pixel samples, comparison caches and runtime diagnostics are held in memory, not saved with settings or uploaded to the developer. Reloading or closing the game tab clears this temporary data. Stopping a run alone does not clear every loaded image.</p>
+    <p>On the map, comparison may temporarily enable the site's incorrect-pixel display and restore it after comparison, provided you have not changed that preference yourself.</p>
 
-    <h2>3. How it works</h2>
-    <p>
-      The extension injects a control panel and an overlay canvas into the page, and
-      when you start a run it dispatches synthetic pointer and keyboard events at the coordinates of
-      each cell in the area you selected — the same events the page would receive if you moved the
-      mouse and clicked there yourself. Official comparison reads template pixels, their on-screen/map coordinates, palette state and loaded board state in memory. On the map, the native incorrect-pixel preference is temporarily enabled and restored through the site UI state. Optional manual comparison reads a local image and board snapshot. Pixel samples are not stored or transmitted by the extension; cookies and account credentials are not read.
-    </p>
-    <div class="callout">
-      Permissions used: <code>storage</code> only, to remember your settings. Host access is limited
-      to <code>https://wplace.live/*</code> and <code>https://*.wplace.live/*</code>.
-    </div>
+    <h2>3. Wplace access and network requests</h2>
+    <p>The adapter identifies official JavaScript modules already observed on the page, reads their sources with a cache-first request and reuses validated exports. A cache miss can cause a request to the same Wplace origin. The browser may include existing site cookies with these requests; the extension does not read cookie values or account credentials. Extension logic is included in the package.</p>
+    <p>Painting sends pointer and keyboard events to Wplace. The site's own handlers may communicate actions and pixel changes to Wplace servers. The extension does not press Save or Publish. Wplace's own data handling is separate from this extension.</p>
+    <div class="callout">The only API permission is <code>storage</code>. Content scripts run only on <code>https://wplace.live/*</code> and <code>https://*.wplace.live/*</code>. The extension does not read browsing history or activity on other sites.</div>
 
-    <h2>Additional information</h2>
-    <p>
-      Automation may be against these sites' rules. Use of this extension is at your own risk and
-      responsibility, including any consequences for your account. The author provides it for
-      personal use and is not responsible for misuse.
-    </p>
-    <p>
-      Questions or concerns: open an issue on the project repository.
-    </p>
+    <h2>4. This policy page</h2>
+    <p>This page stores your language choice in <code>localStorage</code> under <code>apx-policy-lang</code>. Clear site data for this page's origin to remove it. This is separate from extension settings and is not removed when you uninstall the extension.</p>
+    <p>The public page is hosted on GitHub Pages. GitHub logs visitors' IP addresses for security, as explained in its <a href="https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages">Pages documentation</a> and <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement">Privacy Statement</a>. This page adds no analytics or advertising.</p>
+
+    <h2>5. Contact and changes</h2>
+    <p>For questions, <a href="https://github.com/JTech-CO/Autopixel-Aleph/issues">open a project issue</a>. Issue contents are public, so include only information you intend to share. This policy will be updated when the described data handling changes.</p>
   </section>
 
-  <section id="ko" hidden>
+  <section id="ko" lang="ko" hidden>
     <h1>개인정보 처리방침</h1>
-    <p class="meta">AutoPixel-ℵ v2.2.0 · 최종 수정 2026년 9월 8일</p>
+    <p class="meta">AutoPixel-ℵ 2.2.0 (Variable fill 1) · 최종 수정 2026년 9월 25일</p>
 
-    <h2>개요 (Overview)</h2>
-    <p>
-      AutoPixel-ℵ는 <code>wplace.live</code>에서 픽셀 찍기를 자동화하는
-      브라우저 확장입니다. 개인정보를 수집하지 않으며, 이미지나 픽셀 정보를 외부 서비스에 전송하지 않습니다. 공식 비교는 페이지에서 관찰된 동일 출처 JavaScript 응답을 캐시 우선으로 읽어 모듈 역할을 찾고, 검증된 모듈을 재사용합니다. 어떤
-      데이터도 외부로 전송하지 않습니다. 모든 동작은 열려 있는 탭 안에서만 일어납니다.
-    </p>
+    <h2>개요</h2>
+    <p>AutoPixel-ℵ는 Wplace에서 픽셀 찍기를 자동화합니다. 이미지와 설정은 브라우저에서 처리하며 개발자에게 전송하지 않습니다. 분석, 광고, 텔레메트리 및 자동 오류 보고 기능은 포함하지 않습니다.</p>
 
-    <h2>1. 처리하는 정보 (Data We Process)</h2>
-    <p>확장은 <code>chrome.storage.local</code>에 다음 한 건의 기록만 기기 내부에 저장합니다.</p>
+    <h2>1. 기기에 저장하는 설정</h2>
+    <p>확장은 <code>chrome.storage.local</code>에 다음 설정을 저장합니다.</p>
     <ul>
-      <li>인터페이스 상태 — 언어, 패널 위치, 접힘/펼침 여부</li>
-      <li>보정값 — 측정된 1칸 크기(px)와 기준점 좌표</li>
-      <li>선택한 구획 — 선택한 격자 인덱스와 모양, 추가/빼기 모드</li>
-      <li>실행 설정 — 속도 프리셋, 색상 소스, 채우기 순서, 딜레이, 지터, 최대 개수, 보호 옵션</li>
+      <li>언어, 패널 위치와 크기, 접힘 상태</li>
+      <li>칸 크기 보정값, 기준점, 선택한 칸, 선택 모양과 추가·빼기 모드</li>
+      <li>속도, 색상 소스, 가변 채우기, 비교·건너뛰기 옵션, 채우기 순서, 입력 간격, 제한 및 보호 옵션</li>
     </ul>
-    <p>
-      이 정보로 사용자를 식별할 수 없습니다. 브라우저 프로필 밖으로 나가지 않으며, 확장을 삭제하면
-      함께 삭제됩니다.
-    </p>
+    <p>설정은 브라우저 프로필에 저장하며 Chrome 동기화나 확장 자체의 업로드 기능을 사용하지 않습니다. 탭을 닫거나 확장을 비활성화해도 유지됩니다. 확장을 삭제하면 해당 설정도 삭제됩니다. 자세한 내용은 <a href="https://developer.chrome.com/docs/extensions/reference/api/storage">Chrome 저장소 문서</a>에서 확인할 수 있습니다.</p>
 
-    <h2>2. 종합 고지 (Comprehensive Disclosure)</h2>
-    <ul>
-      <li>개인 식별 정보를 수집하지 않습니다.</li>
-      <li>건강·금융·인증·개인 통신·위치 정보를 수집하지 않습니다.</li>
-      <li>방문 기록이나 다른 사이트에서의 활동을 읽지 않습니다. 콘텐츠 스크립트는
-        <code>wplace.live</code>와 그 하위 도메인에서만 실행됩니다.</li>
-      <li>분석·텔레메트리·광고·오류 보고를 하지 않습니다.</li>
-      <li>데이터를 판매하거나 제3자에게 제공하지 않습니다. 제3자 자체가 없습니다.</li>
-      <li>확장 자체 로직은 패키지에 포함됩니다. 공식 비교 어댑터는 페이지에서 관찰된 동일 출처 JavaScript 소스를 읽어 역할을 찾고 실제 인터페이스를 검증한 뒤 페이지 내 상태를 재사용합니다. 외부에서 확장 대체 코드를 내려받지는 않습니다.</li>
-    </ul>
+    <h2>2. 이미지와 캔버스 정보</h2>
+    <p>공식 도안 비교는 도안 픽셀, 화면·게임 지도상의 좌표, 팔레트 상태, 로드된 지도 또는 Alliance 캔버스 정보를 읽습니다. 실시간 오버레이 감지와 가변 채우기는 이 정보를 이용해 선택 구획의 비교 결과를 갱신하고 검증된 색상을 재사용합니다. 게임 지도상의 좌표는 기기의 실제 위치 정보가 아닙니다.</p>
+    <p>선택 사항인 수동 비교는 사용자가 지정한 이미지와 캔버스 표본을 읽습니다. 이미지, 픽셀 표본, 비교 캐시 및 실행 진단 정보는 메모리에서 처리하며 설정에 저장하거나 개발자에게 업로드하지 않습니다. 게임 탭을 새로고침하거나 닫으면 이 임시 정보가 사라집니다. 실행을 정지하는 것만으로 불러온 이미지가 모두 지워지지는 않습니다.</p>
+    <p>지도 비교 시 사이트의 오색 표시를 잠시 켤 수 있으며, 사용자가 해당 설정을 직접 변경하지 않았다면 비교 종료 후 복원합니다.</p>
 
-    <h2>3. 동작 방식 (How It Works)</h2>
-    <p>
-      확장은 해당 페이지에 제어 패널과 오버레이 캔버스를 삽입하고, 실행을 시작하면 선택한
-      구획의 각 칸 좌표로 합성 포인터·키보드 이벤트를 보냅니다. 사용자가 직접 그 위치로 마우스를
-      옮겨 클릭했을 때 페이지가 받는 것과 동일한 이벤트입니다. 공식 도안 픽셀, 화면·지도상의 좌표, 팔레트와 로드된 그림 상태를 메모리에서 읽습니다. 지도에서는 공식 오색 표시 설정을 사이트 상태를 통해 잠시 켜고 복원합니다. 수동 모드에서는 로컬 이미지와 그림 표본을 읽습니다. 확장이 픽셀 표본을 저장·전송하지 않으며 쿠키나 계정 자격 증명은 읽지 않습니다.
-    </p>
-    <div class="callout">
-      사용 권한: 설정 기억을 위한 <code>storage</code> 하나뿐입니다. 호스트 접근은
-      <code>https://wplace.live/*</code>, <code>https://*.wplace.live/*</code>로 제한됩니다.
-    </div>
+    <h2>3. Wplace 접근과 네트워크 요청</h2>
+    <p>어댑터는 페이지에서 관찰된 공식 JavaScript 모듈을 찾아 캐시 우선 요청으로 소스를 읽고, 검증된 모듈을 재사용합니다. 캐시에 없으면 동일한 Wplace 출처로 네트워크 요청이 발생할 수 있습니다. 브라우저가 기존 사이트 쿠키를 요청에 포함할 수 있지만, 확장이 쿠키 값이나 계정 인증 정보를 직접 읽지는 않습니다. 확장 자체 로직은 패키지에 포함됩니다.</p>
+    <p>칠하기는 Wplace에 포인터·키보드 이벤트를 전달합니다. 사이트 자체 처리 과정에서 동작이나 픽셀 변경 정보가 Wplace 서버로 전달될 수 있습니다. 확장은 저장·게시 버튼을 누르지 않습니다. Wplace 자체의 정보 처리는 이 확장과 별개입니다.</p>
+    <div class="callout">API 권한은 <code>storage</code>만 사용합니다. 콘텐츠 스크립트는 <code>https://wplace.live/*</code> 및 <code>https://*.wplace.live/*</code>에서만 실행합니다. 방문 기록이나 다른 사이트의 활동은 읽지 않습니다.</div>
 
-    <h2>추가 정보 (Additional Information)</h2>
-    <p>
-      자동화는 해당 사이트의 규정에 위배될 수 있습니다. 이 확장의 사용과 그로 인한 결과(계정 제재 등)에
-      대한 책임은 전적으로 사용자에게 있습니다. 제작자는 개인적 용도로 제공하며 오용에 대해
-      책임지지 않습니다.
-    </p>
-    <p>
-      문의 사항은 프로젝트 저장소의 이슈로 남겨 주세요.
-    </p>
+    <h2>4. 이 방침 페이지</h2>
+    <p>이 페이지는 선택한 언어를 <code>localStorage</code>의 <code>apx-policy-lang</code> 항목에 저장합니다. 삭제하려면 이 페이지 출처의 사이트 데이터를 지우세요. 확장 설정과 별개이므로 확장을 삭제해도 이 언어 설정은 남습니다.</p>
+    <p>공개 페이지는 GitHub Pages에서 호스팅합니다. GitHub는 보안을 위해 방문자의 IP 주소를 기록합니다. 자세한 내용은 <a href="https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages">Pages 문서</a>와 <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement">개인정보 처리방침</a>을 참고하세요. 이 페이지에 별도의 분석이나 광고 기능은 없습니다.</p>
+
+    <h2>5. 문의와 변경</h2>
+    <p>문의는 <a href="https://github.com/JTech-CO/Autopixel-Aleph/issues">프로젝트 이슈</a>로 남겨 주세요. 이슈 내용은 공개되므로 공개할 정보만 작성해 주세요. 위 정보 처리 방식이 바뀌면 이 방침도 갱신합니다.</p>
   </section>
 
   <footer>MIT License · AutoPixel-ℵ</footer>

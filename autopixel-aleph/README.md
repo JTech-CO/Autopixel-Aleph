@@ -26,4 +26,4 @@ The first connection may take a few seconds. **Current color** paints only templ
 Manual PNG and separate-canvas comparison modes are also available.
 
 Pixel data is processed in the browser. Save and Publish buttons are not pressed.
-[Privacy policy](privacy-policy.html) | Input engine: [wplace-hover](https://github.com/JTech-CO/wplace-hover)
+[Privacy policy](https://jtech-co.github.io/Autopixel-Aleph/autopixel-aleph/privacy-policy.html) | Input engine: [wplace-hover](https://github.com/JTech-CO/wplace-hover)

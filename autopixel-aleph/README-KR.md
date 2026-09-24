@@ -26,4 +26,4 @@ Wplace 전용 자동 칠하기 Chrome 확장입니다.
 수동 PNG 비교와 분리 캔버스 모드도 사용할 수 있습니다.
 
 픽셀 데이터는 브라우저에서 처리하며 저장·게시 버튼은 누르지 않습니다.
-[개인정보 처리방침](privacy-policy.html) | 입력 엔진: [wplace-hover](https://github.com/JTech-CO/wplace-hover)
+[개인정보 처리방침](https://jtech-co.github.io/Autopixel-Aleph/autopixel-aleph/privacy-policy.html) | 입력 엔진: [wplace-hover](https://github.com/JTech-CO/wplace-hover)
